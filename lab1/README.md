@@ -34,7 +34,7 @@
 
 **Диаграмма топологии сети:**
 
-![net_diag](https://raw.githubusercontent.com/asadov1/OTUS_DC/24da0d5c4f0653c5c0df7d63d51d336e4278331e/lab1/topology_1.drawio.png) 
+![net_diag](https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab1/topology_1.drawio.png) 
 
 
 
