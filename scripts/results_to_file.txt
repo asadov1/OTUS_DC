@@ -1,0 +1,6 @@
+192.168.254.53 device output is: 
+ 'CiscoNxosSSH' object has no attribute 'send_сonfig_set'192.168.254.51 device output is: 
+ 'CiscoNxosSSH' object has no attribute 'send_сonfig_set'192.168.254.54 device output is: 
+ 'CiscoNxosSSH' object has no attribute 'send_сonfig_set'192.168.254.52 device output is: 
+ 'CiscoNxosSSH' object has no attribute 'send_сonfig_set'192.168.254.50 device output is: 
+ 'CiscoNxosSSH' object has no attribute 'send_сonfig_set'

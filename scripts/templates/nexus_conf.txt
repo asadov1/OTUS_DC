@@ -1,0 +1,22 @@
+cli alias name wr copy run start
+username admin password 0 admin
+no ip domain-lookup
+ip domain-name cisco.com
+feature ospf
+hostname {{ device_params.hostname }}
+
+router ospf {{ device_params.ospf_proc }}
+   router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+
+{% for intf, ip in device_params.int_num.items() %}
+interface {{ intf }}
+{% if 'Eth' in intf %}
+   no switchport
+   medium p2p
+   ip address {{ ip }}
+   ip router ospf {{ device_params.ospf_proc }} area {{ device_params.area }}
+   no shutdown
+{% elif 'Lo' in intf %}
+   ip address {{ ip }}
+{% endif %}
+{% endfor %}
