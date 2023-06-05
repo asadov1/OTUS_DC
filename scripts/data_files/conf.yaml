@@ -3,6 +3,7 @@ devices:
     hostname: Spine1
     ospf_proc: UNDERLAY
     area: 0
+    ospf_password: cisco
     int_num:
       Eth1/1: 10.2.1.1/31
       Eth1/2: 10.2.1.3/31
@@ -12,6 +13,7 @@ devices:
     hostname: Spine2
     ospf_proc: UNDERLAY
     area: 0
+    ospf_password: cisco
     int_num:
       Eth1/1: 10.2.2.1/31
       Eth1/2: 10.2.2.3/31
@@ -21,6 +23,7 @@ devices:
     hostname: leaf1
     ospf_proc: UNDERLAY
     area: 0
+    ospf_password: cisco
     int_num:
       Eth1/1: 10.2.1.0/31
       Eth1/2: 10.2.2.0/31
@@ -29,6 +32,7 @@ devices:
     hostname: leaf2
     ospf_proc: UNDERLAY
     area: 0
+    ospf_password: cisco
     int_num:
       Eth1/1: 10.2.1.2/31
       Eth1/2: 10.2.2.2/31
@@ -37,6 +41,7 @@ devices:
     hostname: leaf3
     ospf_proc: UNDERLAY
     area: 0
+    ospf_password: cisco
     int_num:
       Eth1/1: 10.2.1.4/31
       Eth1/2: 10.2.2.4/31

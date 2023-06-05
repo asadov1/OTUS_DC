@@ -15,6 +15,7 @@ interface {{ intf }}
    medium p2p
    ip address {{ ip }}
    ip router ospf {{ device_params.ospf_proc }} area {{ device_params.area }}
+   ip ospf message-digest-key 1 md5 {{ device_params.ospf_password }}
    no shutdown
 {% elif 'Lo' in intf %}
    ip address {{ ip }}
