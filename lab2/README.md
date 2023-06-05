@@ -279,13 +279,13 @@ Spine1# sh ip ospf neighbors
  10.0.1.3          1 FULL/ -          03:27:14 10.2.1.2        Eth1/2
  10.0.1.4          1 FULL/ -          03:28:25 10.2.1.4        Eth1/3
  
- Spine1# show ip ospf neighbors
+Spine2# show ip ospf neighbors
  OSPF Process ID UNDERLAY VRF default
  Total number of neighbors: 3
  Neighbor ID     Pri State            Up Time  Address         Interface
- 10.0.1.2          1 FULL/ -          03:28:19 10.2.1.0        Eth1/1
- 10.0.1.3          1 FULL/ -          03:27:50 10.2.1.2        Eth1/2
- 10.0.1.4          1 FULL/ -          03:29:01 10.2.1.4        Eth1/3
+ 10.0.1.2          1 FULL/ -          00:04:02 10.2.2.0        Eth1/1
+ 10.0.1.3          1 FULL/ -          00:04:04 10.2.2.2        Eth1/2
+ 10.0.1.4          1 FULL/ -          00:04:04 10.2.2.4        Eth1/3
 ```
 
 ### Примечание:
