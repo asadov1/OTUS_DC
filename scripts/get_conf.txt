@@ -1,7 +1,7 @@
 Spine1#
 !Command: show running-config
-!Running configuration last done at: Mon Jun  5 10:29:50 2023
-!Time: Mon Jun  5 11:41:37 2023
+!Running configuration last done at: Tue Jun  6 12:05:25 2023
+!Time: Tue Jun  6 12:07:29 2023
 
 version 9.3(5) Bios:version  
 hostname Spine1
@@ -18,7 +18,7 @@ vdc Spine1 id 1
 feature ospf
 
 no password strength-check
-username admin password 5 $5$HODHBA$3ILd/6FxBXGrmnH631DK2TKUFpRQNNMbzWp/bBjMRE4  role network-admin
+username admin password 5 $5$LDMPAG$SotmtojERRS5aV9eo6Td8RL2CXt2q77rIAf2/GfJrF6  role network-admin
 username cisco_automate password 5 $5$AKIELO$ikKq.WZJhsZkuzE4LWzVxBVrI01D2RDJ2BFdnzJv/0D  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
@@ -41,6 +41,7 @@ interface Ethernet1/1
   no switchport
   medium p2p
   ip address 10.2.1.1/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -48,6 +49,7 @@ interface Ethernet1/2
   no switchport
   medium p2p
   ip address 10.2.1.3/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -55,6 +57,7 @@ interface Ethernet1/3
   no switchport
   medium p2p
   ip address 10.2.1.5/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -186,6 +189,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.0/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -198,8 +203,8 @@ router ospf UNDERLAY
 
 ========================================Spine2#
 !Command: show running-config
-!Running configuration last done at: Mon Jun  5 10:32:02 2023
-!Time: Mon Jun  5 11:43:45 2023
+!Running configuration last done at: Tue Jun  6 12:08:25 2023
+!Time: Tue Jun  6 12:10:18 2023
 
 version 9.3(5) Bios:version  
 hostname Spine2
@@ -216,7 +221,7 @@ vdc Spine2 id 1
 feature ospf
 
 no password strength-check
-username admin password 5 $5$JECNPK$PRf8PeVr5O2g/8aGXkvBRHDFDH/cb4qlaSWXGM.L.0.  role network-admin
+username admin password 5 $5$FKEOEL$UfkUtGNvfjoZgpO4ekbvQ488j1KT5nCZ7GVGPxc1sA5  role network-admin
 username cisco_automate password 5 $5$KGIIOD$1WJKrneKJ9a9flcul85RItijVLMeu.rgSu5sSGBqSZ7  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
@@ -239,6 +244,7 @@ interface Ethernet1/1
   no switchport
   medium p2p
   ip address 10.2.2.1/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -246,6 +252,7 @@ interface Ethernet1/2
   no switchport
   medium p2p
   ip address 10.2.2.3/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -253,6 +260,7 @@ interface Ethernet1/3
   no switchport
   medium p2p
   ip address 10.2.2.5/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -384,6 +392,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.1/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -396,8 +406,8 @@ router ospf UNDERLAY
 
 ========================================leaf1#
 !Command: show running-config
-!Running configuration last done at: Mon Jun  5 10:32:24 2023
-!Time: Mon Jun  5 11:43:56 2023
+!Running configuration last done at: Tue Jun  6 12:09:21 2023
+!Time: Tue Jun  6 12:11:04 2023
 
 version 9.3(5) Bios:version  
 hostname leaf1
@@ -414,7 +424,7 @@ vdc leaf1 id 1
 feature ospf
 
 no password strength-check
-username admin password 5 $5$EFMGJN$4yuI9ERtvR8L6sEGjxvtFljY.XSVKTvCbabZe5PZ.mA  role network-admin
+username admin password 5 $5$PNGHJJ$IrCd2FlhG894DZtWs7bHi2477ghbNVCeswJng8o1ufD  role network-admin
 username cisco_automate password 5 $5$OPGJEP$P2NLVzjwKTJU.nxJJiquu4YSvpXCbNLwDkJRVMH2ggD  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
@@ -437,6 +447,7 @@ interface Ethernet1/1
   no switchport
   medium p2p
   ip address 10.2.1.0/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -444,6 +455,7 @@ interface Ethernet1/2
   no switchport
   medium p2p
   ip address 10.2.2.0/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -577,6 +589,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.2/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -589,8 +603,8 @@ router ospf UNDERLAY
 
 ========================================leaf2#
 !Command: show running-config
-!Running configuration last done at: Mon Jun  5 10:32:42 2023
-!Time: Mon Jun  5 11:44:07 2023
+!Running configuration last done at: Tue Jun  6 12:09:37 2023
+!Time: Tue Jun  6 12:11:11 2023
 
 version 9.3(5) Bios:version  
 hostname leaf2
@@ -607,7 +621,7 @@ vdc leaf2 id 1
 feature ospf
 
 no password strength-check
-username admin password 5 $5$FOPMFM$VW2pHxeOGZciTcrZhQ90yN23ftJObc5LUpwR0O3MGq1  role network-admin
+username admin password 5 $5$HKDJNK$9NYed/7iFhv94shM9AhqEqEOcupL1OG2PeW/yQ3/RM7  role network-admin
 username cisco_automate password 5 $5$CHOOGM$LjUcBd6Giax3YFxmbcDn9lM4eqwWG.G35NKWHESm5a3  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
@@ -630,6 +644,7 @@ interface Ethernet1/1
   no switchport
   medium p2p
   ip address 10.2.1.2/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -637,6 +652,7 @@ interface Ethernet1/2
   no switchport
   medium p2p
   ip address 10.2.2.2/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -770,6 +786,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.3/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -782,8 +800,8 @@ router ospf UNDERLAY
 
 ========================================leaf3#
 !Command: show running-config
-!Running configuration last done at: Mon Jun  5 10:32:47 2023
-!Time: Mon Jun  5 11:43:59 2023
+!Running configuration last done at: Tue Jun  6 12:09:15 2023
+!Time: Tue Jun  6 12:10:36 2023
 
 version 9.3(5) Bios:version  
 hostname leaf3
@@ -800,7 +818,7 @@ vdc leaf3 id 1
 feature ospf
 
 no password strength-check
-username admin password 5 $5$DEDELL$3eaZdtTP1KTO0zEuepiuhAEok1fkdasxwsNsyhxA/t2  role network-admin
+username admin password 5 $5$HFDPIO$7lwSCBhirBBotUkFU8BwFntkHUKvtCMq32XGEAKqBSD  role network-admin
 username cisco_automate password 5 $5$CJKFKL$0ZV79q6CwFSf3/FyaaFYpNwlGx0wglyObUxbkn/ZIdC  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
@@ -823,6 +841,7 @@ interface Ethernet1/1
   no switchport
   medium p2p
   ip address 10.2.1.4/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -830,6 +849,7 @@ interface Ethernet1/2
   no switchport
   medium p2p
   ip address 10.2.2.4/31
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
   ip router ospf UNDERLAY area 0.0.0.0
   no shutdown
 
@@ -963,6 +983,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.4/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start

@@ -1,0 +1,5 @@
+cli alias name wr copy run start
+username admin password 0 admin
+no ip domain-lookup
+ip domain-name cisco.com
+hostname {{ device_params.hostname }}
