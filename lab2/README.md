@@ -90,6 +90,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.0/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -139,6 +141,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.1/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -179,6 +183,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.2/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -219,6 +225,8 @@ nterface mgmt0
 
 interface loopback0
   ip address 10.0.1.3/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
@@ -259,6 +267,8 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.4/32
+  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
+  ip router ospf UNDERLAY area 0.0.0.0
 icam monitor scale
 
 cli alias name wr copy run start
