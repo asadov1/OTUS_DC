@@ -45,7 +45,7 @@
 
 **Топология EVE:**
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab2/topology_eve.png" alt="eve_net_diag" style="zoom:40%;" />
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab3/topology_eve.png" style="zoom:40%;" />
 
 
 
@@ -114,8 +114,14 @@ icam monitor scale
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.0
+router isis UNDERLAY
+  net 49.0001.0100.0000.1000.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 ```
 
@@ -123,33 +129,51 @@ router ospf UNDERLAY
 
 ```
 hostname Spine2
-feature ospf
+feature isis
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
+  
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.1/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.3/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.5/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
   
 interface mgmt0
@@ -158,40 +182,58 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.1/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.1
+router isis UNDERLAY
+  net 49.0001.0100.0000.1001.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 ```
 
 ***leaf1:***
 
 ```
 hostname leaf1
-feature ospf
+feature isis
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.0/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.0/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface mgmt0
@@ -200,121 +242,166 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.2/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.2
+router isis UNDERLAY
+  net 49.0001.0100.0000.1002.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 ```
 
 ***leaf2:***
 
 ```
 hostname leaf2
-feature ospf
+feature isis
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.2/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.2/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
-nterface mgmt0
+interface mgmt0
   vrf member management
   ip address 192.168.254.53/24
 
 interface loopback0
   ip address 10.0.1.3/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.3
+router isis UNDERLAY
+  net 49.0001.0100.0000.1003.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 ```
 
 ***leaf3:***
 
 ```
 hostname leaf3
-feature ospf
+feature isis
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.4/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.4/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
-
 interface mgmt0
   vrf member management
   ip address 192.168.254.54/24
 
 interface loopback0
   ip address 10.0.1.4/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.4
+router isis UNDERLAY
+  net 49.0001.0100.0000.1004.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 ```
 
 ***Проверка установки соседства ospf между spine и leaf коммутаторами:***
 
 ```
-Spine1# sh ip ospf neighbors
- OSPF Process ID UNDERLAY VRF default
- Total number of neighbors: 3
- Neighbor ID     Pri State            Up Time  Address         Interface
- 10.0.1.2          1 FULL/ -          03:27:43 10.2.1.0        Eth1/1
- 10.0.1.3          1 FULL/ -          03:27:14 10.2.1.2        Eth1/2
- 10.0.1.4          1 FULL/ -          03:28:25 10.2.1.4        Eth1/3
+Spine1# show isis adjacency
+IS-IS process: UNDERLAY VRF: default
+IS-IS adjacency database:
+Legend: '!': No AF level connectivity in given topology
+System ID       SNPA            Level  State  Hold Time  Interface
+leaf1           N/A             2      UP     00:00:32   Ethernet1/1
+leaf2           N/A             2      UP     00:00:26   Ethernet1/2
+leaf3           N/A             2      UP     00:00:26   Ethernet1/3
  
-Spine2# show ip ospf neighbors
- OSPF Process ID UNDERLAY VRF default
- Total number of neighbors: 3
- Neighbor ID     Pri State            Up Time  Address         Interface
- 10.0.1.2          1 FULL/ -          00:04:02 10.2.2.0        Eth1/1
- 10.0.1.3          1 FULL/ -          00:04:04 10.2.2.2        Eth1/2
- 10.0.1.4          1 FULL/ -          00:04:04 10.2.2.4        Eth1/3
+Spine2# show isis adjacency
+IS-IS process: UNDERLAY VRF: default
+IS-IS adjacency database:
+Legend: '!': No AF level connectivity in given topology
+System ID       SNPA            Level  State  Hold Time  Interface
+leaf1           N/A             2      UP     00:00:26   Ethernet1/1
+leaf2           N/A             2      UP     00:00:32   Ethernet1/2
+leaf3           N/A             2      UP     00:00:26   Ethernet1/3
 ```
 
 ### Примечание:
 
-Дополнительно сделал линк в vrf management для автоматизации управления конфигурацией коммутаторами. Не в тему курса, но все равно думаю не лишнее. Скрипты так же в папке _scripts_ репозитория.
+* Дополнительно сделал линк в vrf management для автоматизации управления конфигурацией коммутаторами. Не в тему курса, но все равно думаю не лишнее. Скрипты так же в папке _scripts_ репозитория.
+* Сделал отдельно шаблоны jinja для интерфейсов, ospf, isis. Теперь можно выбрать с каким проткоолом запустить лабу и конфигурация поностью перестроиться под isis или ospf. Те можно в один клик переключатсья между underlay настройками для тестирвония. Продолжу для остальных проткоколов и делать автоматизацию
+* Поднял рядом топологию на Arista, подниму все прошлые ДЗ как на альтернативном оборудовании.
+
