@@ -1,9 +1,9 @@
 Spine1#
 !Command: show running-config
-!Running configuration last done at: Tue Jun  6 12:05:25 2023
-!Time: Tue Jun  6 12:07:29 2023
+!Running configuration last done at: Thu Jun 15 14:34:52 2023
+!Time: Thu Jun 15 14:45:29 2023
 
-version 9.3(5) Bios:version  
+version 9.3(10) Bios:version  
 hostname Spine1
 vdc Spine1 id 1
   limit-resource vlan minimum 16 maximum 4094
@@ -13,19 +13,21 @@ vdc Spine1 id 1
   limit-resource u6route-mem minimum 96 maximum 96
   limit-resource m4route-mem minimum 58 maximum 58
   limit-resource m6route-mem minimum 8 maximum 8
-  limit-resource vni_bd minimum 4096 maximum 4096
 
 feature ospf
+feature bgp
+feature isis
+feature bfd
 
 no password strength-check
-username admin password 5 $5$LDMPAG$SotmtojERRS5aV9eo6Td8RL2CXt2q77rIAf2/GfJrF6  role network-admin
-username cisco_automate password 5 $5$AKIELO$ikKq.WZJhsZkuzE4LWzVxBVrI01D2RDJ2BFdnzJv/0D  role network-admin
+username admin password 5 $5$IEIGLG$CtLhiBwBhHS4y.QVkHK.Dh.JvyYJtokeSDx0JDSNuu9  role network-admin
+username cisco_automate password 5 $5$DONCKF$Yl7mkskY1.sBd.wqJurTRsHOGlnBjOw5PdkIs7OjWn/  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
 ip domain-name cisco.com
 copp profile strict
-snmp-server user admin network-admin auth md5 0x5774256ce3907cf478f0318361f7fe22 priv 0x5774256ce3907cf478f0318361f7fe22 localizedkey
-snmp-server user cisco_automate network-admin auth md5 0x01979cae7040e9f27c13ceb7df81886a priv 0x01979cae7040e9f27c13ceb7df81886a localizedkey
+snmp-server user admin network-admin auth md5 497767F00A6A39E161660AD557A7FBE189FF priv 165B3BAE5A367DE3763B05885380B88ECCA8 localizedV2key
+snmp-server user cisco_automate network-admin auth md5 481A79B3054484B7DA18847AD6250C09118E priv 321827E7091D83BCCA4587268378781154DC localizedV2key
 rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
 rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
@@ -34,31 +36,50 @@ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
 
 vlan 1
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.1/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.3/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.5/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/4
@@ -189,24 +210,29 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.0/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.0
+router isis UNDERLAY
+  net 49.0001.0100.0000.1000.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 
 
 ========================================Spine2#
 !Command: show running-config
-!Running configuration last done at: Tue Jun  6 12:08:25 2023
-!Time: Tue Jun  6 12:10:18 2023
+!Running configuration last done at: Thu Jun 15 14:36:17 2023
+!Time: Thu Jun 15 14:46:18 2023
 
-version 9.3(5) Bios:version  
+version 9.3(10) Bios:version  
 hostname Spine2
 vdc Spine2 id 1
   limit-resource vlan minimum 16 maximum 4094
@@ -216,19 +242,21 @@ vdc Spine2 id 1
   limit-resource u6route-mem minimum 96 maximum 96
   limit-resource m4route-mem minimum 58 maximum 58
   limit-resource m6route-mem minimum 8 maximum 8
-  limit-resource vni_bd minimum 4096 maximum 4096
 
 feature ospf
+feature bgp
+feature isis
+feature bfd
 
 no password strength-check
-username admin password 5 $5$FKEOEL$UfkUtGNvfjoZgpO4ekbvQ488j1KT5nCZ7GVGPxc1sA5  role network-admin
-username cisco_automate password 5 $5$KGIIOD$1WJKrneKJ9a9flcul85RItijVLMeu.rgSu5sSGBqSZ7  role network-admin
+username admin password 5 $5$NMLLHK$.O2UDyqpYJkf9p/5fAfbXRJsm9U9diN2XVih6fxVf97  role network-admin
+username cisco_automate password 5 $5$KBABHB$eaGyv7fki/ZIprws0r8cOWGIVeZ8XHCcqgRDxiWVri6  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
 ip domain-name cisco.com
 copp profile strict
-snmp-server user admin network-admin auth md5 0x6cac77450ecf560823c05f90b4aed6bf priv 0x6cac77450ecf560823c05f90b4aed6bf localizedkey
-snmp-server user cisco_automate network-admin auth md5 0x27e7091d83bcca4587268378781154dc priv 0x27e7091d83bcca4587268378781154dc localizedkey
+snmp-server user admin network-admin auth md5 3767365F03837B4A9B6DFAD880FF323E0CBF priv 533113257CE36926E0558CBD557B80B971F8 localizedV2key
+snmp-server user cisco_automate network-admin auth md5 32088F94FF77C64EF45C329FB436E990EF4A priv 5206D3D4AD7D9E5DE40A4B84A96DA5C1F303 localizedV2key
 rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
 rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
@@ -237,31 +265,50 @@ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
 
 vlan 1
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.1/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.3/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.5/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/4
@@ -392,24 +439,29 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.1/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.1
+router isis UNDERLAY
+  net 49.0001.0100.0000.1001.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 
 
 ========================================leaf1#
 !Command: show running-config
-!Running configuration last done at: Tue Jun  6 12:09:21 2023
-!Time: Tue Jun  6 12:11:04 2023
+!Running configuration last done at: Thu Jun 15 14:37:07 2023
+!Time: Thu Jun 15 14:46:35 2023
 
-version 9.3(5) Bios:version  
+version 9.3(10) Bios:version  
 hostname leaf1
 vdc leaf1 id 1
   limit-resource vlan minimum 16 maximum 4094
@@ -419,19 +471,21 @@ vdc leaf1 id 1
   limit-resource u6route-mem minimum 96 maximum 96
   limit-resource m4route-mem minimum 58 maximum 58
   limit-resource m6route-mem minimum 8 maximum 8
-  limit-resource vni_bd minimum 4096 maximum 4096
 
 feature ospf
+feature bgp
+feature isis
+feature bfd
 
 no password strength-check
-username admin password 5 $5$PNGHJJ$IrCd2FlhG894DZtWs7bHi2477ghbNVCeswJng8o1ufD  role network-admin
-username cisco_automate password 5 $5$OPGJEP$P2NLVzjwKTJU.nxJJiquu4YSvpXCbNLwDkJRVMH2ggD  role network-admin
+username admin password 5 $5$PLKEIG$iKmTBtWtznNw4sWE54KQN8i6SRtNFvUbIYMnh0Z8y4/  role network-admin
+username cisco_automate password 5 $5$NNEABC$.06YTaQhRWabNn/hYLpp63NUk2l3kNi8TtPTcvtLHtC  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
 ip domain-name cisco.com
 copp profile strict
-snmp-server user admin network-admin auth md5 0x75425cd40d558731b7d6cceb3e6a5f91 priv 0x75425cd40d558731b7d6cceb3e6a5f91 localizedkey
-snmp-server user cisco_automate network-admin auth md5 0xd1c0f32ec145e40131c3e16b9d88aa18 priv 0xd1c0f32ec145e40131c3e16b9d88aa18 localizedkey
+snmp-server user admin network-admin auth md5 206B2A04450DCF8063F422A930896BF1FE27 priv 00451C217539EB8E658C6CE96BC831B4E772 localizedV2key
+snmp-server user cisco_automate network-admin auth md5 495251CBD8AC671DE6AF78348DD89AD68464 priv 52175CDCC9FE2548F7EB0407D7ED94D1CB73 localizedV2key
 rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
 rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
@@ -440,23 +494,37 @@ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
 
 vlan 1
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.0/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.0/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
@@ -589,24 +657,29 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.2/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.2
+router isis UNDERLAY
+  net 49.0001.0100.0000.1002.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 
 
 ========================================leaf2#
 !Command: show running-config
-!Running configuration last done at: Tue Jun  6 12:09:37 2023
-!Time: Tue Jun  6 12:11:11 2023
+!Running configuration last done at: Thu Jun 15 14:37:35 2023
+!Time: Thu Jun 15 14:46:31 2023
 
-version 9.3(5) Bios:version  
+version 9.3(10) Bios:version  
 hostname leaf2
 vdc leaf2 id 1
   limit-resource vlan minimum 16 maximum 4094
@@ -616,19 +689,21 @@ vdc leaf2 id 1
   limit-resource u6route-mem minimum 96 maximum 96
   limit-resource m4route-mem minimum 58 maximum 58
   limit-resource m6route-mem minimum 8 maximum 8
-  limit-resource vni_bd minimum 4096 maximum 4096
 
 feature ospf
+feature bgp
+feature isis
+feature bfd
 
 no password strength-check
-username admin password 5 $5$HKDJNK$9NYed/7iFhv94shM9AhqEqEOcupL1OG2PeW/yQ3/RM7  role network-admin
-username cisco_automate password 5 $5$CHOOGM$LjUcBd6Giax3YFxmbcDn9lM4eqwWG.G35NKWHESm5a3  role network-admin
+username admin password 5 $5$CDGNFD$b3PdIiscF6Sfg3zfztjI19KPcr2yHPqRf8Q4PFGEomC  role network-admin
+username cisco_automate password 5 $5$FPCKMM$GWJomdBYiANEflFl4zJKhbHUQF9fRbuf3Fse.e4OlJ2  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
 ip domain-name cisco.com
 copp profile strict
-snmp-server user admin network-admin auth md5 0xee080d5d85a48c57d2ff9a3eadd2c63f priv 0xee080d5d85a48c57d2ff9a3eadd2c63f localizedkey
-snmp-server user cisco_automate network-admin auth md5 0xdeaa75648df36ce9026cdc606963a25d priv 0xdeaa75648df36ce9026cdc606963a25d localizedkey
+snmp-server user admin network-admin auth md5 042BEE020656E2CEAD7DE2CA9B32B7D5ED42 priv 0041FE161F5FD6F5D024CBE5987CAEC28C63 localizedV2key
+snmp-server user cisco_automate network-admin auth md5 207FAD865557ABBB60F90E4CC6773829F344 priv 204AE984420AA4E664DE4D2383203427E458 localizedV2key
 rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
 rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
@@ -637,23 +712,37 @@ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
 
 vlan 1
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.2/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.2/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
@@ -786,24 +875,29 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.3/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.3
+router isis UNDERLAY
+  net 49.0001.0100.0000.1003.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 
 
 ========================================leaf3#
 !Command: show running-config
-!Running configuration last done at: Tue Jun  6 12:09:15 2023
-!Time: Tue Jun  6 12:10:36 2023
+!Running configuration last done at: Thu Jun 15 14:38:19 2023
+!Time: Thu Jun 15 14:46:43 2023
 
-version 9.3(5) Bios:version  
+version 9.3(10) Bios:version  
 hostname leaf3
 vdc leaf3 id 1
   limit-resource vlan minimum 16 maximum 4094
@@ -813,19 +907,21 @@ vdc leaf3 id 1
   limit-resource u6route-mem minimum 96 maximum 96
   limit-resource m4route-mem minimum 58 maximum 58
   limit-resource m6route-mem minimum 8 maximum 8
-  limit-resource vni_bd minimum 4096 maximum 4096
 
 feature ospf
+feature bgp
+feature isis
+feature bfd
 
 no password strength-check
-username admin password 5 $5$HFDPIO$7lwSCBhirBBotUkFU8BwFntkHUKvtCMq32XGEAKqBSD  role network-admin
-username cisco_automate password 5 $5$CJKFKL$0ZV79q6CwFSf3/FyaaFYpNwlGx0wglyObUxbkn/ZIdC  role network-admin
+username admin password 5 $5$OMAAAO$T2bQ/c/1OX8gN.TkmxcQ0sNBTVeaX9MZE4reO2tm.K8  role network-admin
+username cisco_automate password 5 $5$GCHHAP$pnuikGj31dX9fFdRZdnhmpt8RnyEEN7rzswgC8nyypD  role network-admin
 username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
 no ip domain-lookup
 ip domain-name cisco.com
 copp profile strict
-snmp-server user admin network-admin auth md5 0x4c1f79d453321d888f48318e5bf21f34 priv 0x4c1f79d453321d888f48318e5bf21f34 localizedkey
-snmp-server user cisco_automate network-admin auth md5 0x19c06bc0910f4e6b56ab865d378301d9 priv 0x19c06bc0910f4e6b56ab865d378301d9 localizedkey
+snmp-server user admin network-admin auth md5 52226C244CE52A2A1C91AD0529DE1AA45C28 priv 166A531D57A47C1C219CE1153F815DE45B66 localizedV2key
+snmp-server user cisco_automate network-admin auth md5 364E43802ECDC75B052F5AA7DA5563D10D85 priv 53007DB315A4AA642904178757CBB11976AB localizedV2key
 rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
 rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
 rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
@@ -834,23 +930,37 @@ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
 
 vlan 1
 
+key chain ISIS
+  key 0
+    key-string 7 070c285f4d06
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+
 interface Ethernet1/1
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.1.4/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/2
   no switchport
+  mtu 9216
   medium p2p
+  no ip redirects
   ip address 10.2.2.4/31
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  no isis hello-padding always
+  isis network point-to-point
+  isis authentication-type md5 level-2
+  isis authentication key-chain ISIS level-2
+  ip router isis UNDERLAY
   no shutdown
 
 interface Ethernet1/3
@@ -983,15 +1093,20 @@ interface mgmt0
 
 interface loopback0
   ip address 10.0.1.4/32
-  ip ospf message-digest-key 1 md5 3 9125d59c18a9b015
-  ip router ospf UNDERLAY area 0.0.0.0
+  ip router isis UNDERLAY
 icam monitor scale
 
 cli alias name wr copy run start
 line console
 line vty
-router ospf UNDERLAY
-  router-id 10.0.1.4
+router isis UNDERLAY
+  net 49.0001.0100.0000.1004.00
+  is-type level-2
+  max-lsp-lifetime 65535
+  set-overload-bit on-startup 180
+  log-adjacency-changes
+  authentication-type md5 level-2
+  authentication key-chain ISIS level-2
 
 
 

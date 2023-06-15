@@ -1,15 +1,5 @@
 {% include 'nxos_base_conf.txt' %}
 
-{% for intf, ip in device_params.int_num.items() %}
-interface {{ intf }}
-{% if 'Eth' in intf %}
-   no switchport
-   medium p2p
-   ip address {{ ip }}
-{% include 'nxos_ospf_conf.txt' %}
-   no shutdown
-{% elif 'Lo' in intf %}
-   ip address {{ ip }}
-{% include 'nxos_ospf_conf.txt' %}
-{% endif %}
-{% endfor %}
+{% include 'nxos_intf_conf.txt' %}
+
+{% include 'nxos_isis_conf.txt' %}

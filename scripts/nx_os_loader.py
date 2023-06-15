@@ -5,6 +5,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from netmiko import Netmiko, NetmikoBaseException
 from paramiko.ssh_exception import SSHException
+from isis_net_converting import isis_net
 
 
 def yaml_load(filename):
@@ -18,10 +19,11 @@ def generate_config(template, data_dict):
     env = Environment(
         loader=FileSystemLoader(templ_dir), trim_blocks=True, lstrip_blocks=True
     )
+    env.filters["isis_net"] = isis_net
     templ = env.get_template(templ_file)
     return templ.render(data_dict)
 
-def send_config_commands(device, config_commands, save_conf=True):
+def send_config_commands(device, config_commands, save_conf=False):
     try:
         with Netmiko(**device) as conn:
             conn.enable()
@@ -43,5 +45,6 @@ if __name__ == '__main__':
         device_ip = device["host"]
         device_conf = generate_config(template_file, {"device_params": conf_params['devices'][device_ip]})
         device_conf = device_conf.split('\n')
+
         print(send_config_commands(device, device_conf))
 
