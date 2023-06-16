@@ -53,7 +53,7 @@
 
 **Spine1:**
 
-```
+```Spine1
 hostname Spine1
 feature isis
 
@@ -125,9 +125,11 @@ router isis UNDERLAY
 
 ```
 
+
+
 **Spine2:**
 
-```
+```Spine2
 hostname Spine2
 feature isis
 
@@ -200,7 +202,7 @@ router isis UNDERLAY
 
 ***leaf1:***
 
-```
+```leaf1
 hostname leaf1
 feature isis
 
@@ -260,7 +262,7 @@ router isis UNDERLAY
 
 ***leaf2:***
 
-```
+```leaf2
 hostname leaf2
 feature isis
 
@@ -320,7 +322,7 @@ router isis UNDERLAY
 
 ***leaf3:***
 
-```
+```leaf3
 hostname leaf3
 feature isis
 
@@ -379,7 +381,7 @@ router isis UNDERLAY
 
 ***Проверка установки соседства ospf между spine и leaf коммутаторами:***
 
-```
+```isis_adj
 Spine1# show isis adjacency
 IS-IS process: UNDERLAY VRF: default
 IS-IS adjacency database:
