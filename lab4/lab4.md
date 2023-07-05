@@ -54,6 +54,7 @@
 ```
 <details>
   <summary>Конфигурация для NX-OS ibgp</summary>
+  
   **Spine1**
   ```feature bgp
   route-map REDISTRIBUTE_CONNECTED permit 10
