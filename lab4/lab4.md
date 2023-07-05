@@ -51,54 +51,56 @@
 
 ### Примененные конфигурации:
 
-```
 <details>
   <summary>Конфигурация для NX-OS ibgp</summary>
-  
-  **Spine1**
-  ```feature bgp
-  route-map REDISTRIBUTE_CONNECTED permit 10
-  match interface loopback0 
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-  
-  interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  ip address 10.2.1.1/31
-  no shutdown
 
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  ip address 10.2.1.3/31
-  no shutdown
-
-interface Ethernet1/3
-  no switchport
-  mtu 9216
-  medium p2p
-  ip address 10.2.1.5/31
-  no shutdown
-  
-  interface loopback0
-  ip address 10.10.0.0/32
-  
-  router bgp 65000
-  router-id 10.10.0.0
-  neighbor 10.2.0.0/22
-    remote-as 65000
-    password 3 9125d59c18a9b015
-    timers 3 9
-    maximum-peers 10
-    address-family ipv4 unicast
-      route-reflector-client
-      next-hop-self all
+        **Spine1**
+        ```feature bgp
+        route-map REDISTRIBUTE_CONNECTED permit 10
+        match interface loopback0 
+      vrf context management
+        ip route 0.0.0.0/0 mgmt0 192.168.254.1
+    
+        interface Ethernet1/1
+        no switchport
+        mtu 9216
+        medium p2p
+        ip address 10.2.1.1/31
+        no shutdown
+    
+      interface Ethernet1/2
+        no switchport
+        mtu 9216
+        medium p2p
+        ip address 10.2.1.3/31
+        no shutdown
+    
+      interface Ethernet1/3
+        no switchport
+        mtu 9216
+        medium p2p
+        ip address 10.2.1.5/31
+        no shutdown
+    
+        interface loopback0
+        ip address 10.10.0.0/32
+    
+        router bgp 65000
+        router-id 10.10.0.0
+        neighbor 10.2.0.0/22
+          remote-as 65000
+          password 3 9125d59c18a9b015
+          timers 3 9
+          maximum-peers 10
+          address-family ipv4 unicast
+            route-reflector-client
+            next-hop-self all
+      ```
 
 </details>
-```
+
+
+​		  	
 
 **Spine1:**
 
