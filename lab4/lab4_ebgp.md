@@ -373,3 +373,9 @@ AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Li
  *  ec   10.8.0.4/32            10.10.2.1             0       100     0       65000 65003 i
 ```
 
+
+
+### Примечание:
+
+* ​	Добавил шаблоны конфигурации jinja для ibg и ebgp. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
+
