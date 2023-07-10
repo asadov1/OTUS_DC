@@ -75,11 +75,12 @@ route-map REDISTRIBUTE_CONNECTED permit 10
 route-map R_AS permit 10
   match as-number 65001-65003
   
+router bgp 65000
   router-id 10.0.0.0
+  bestpath as-path multipath-relax
   reconnect-interval 12
   address-family ipv4 unicast
     redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths 64
   neighbor 10.2.0.0/22 remote-as route-map R_AS
     password 3 9125d59c18a9b015
     timers 3 9
@@ -99,10 +100,10 @@ route-map R_AS permit 10
 
 router bgp 65000
   router-id 10.0.0.1
+  bestpath as-path multipath-relax
   reconnect-interval 12
   address-family ipv4 unicast
     redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths 64
   neighbor 10.2.0.0/22 remote-as route-map R_AS
     password 3 9125d59c18a9b015
     timers 3 9
@@ -123,7 +124,7 @@ router bgp 65001
   reconnect-interval 12
   address-family ipv4 unicast
     redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths ibgp 64
+    maximum-paths 64
   template peer SPINE
     remote-as 65000
     password 3 9125d59c18a9b015
@@ -148,7 +149,7 @@ router bgp 65002
   reconnect-interval 12
   address-family ipv4 unicast
     redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths ibgp 64
+    maximum-paths 64
   template peer SPINE
     remote-as 65000
     password 3 9125d59c18a9b015
@@ -173,7 +174,7 @@ router bgp 65003
   reconnect-interval 12
   address-family ipv4 unicast
     redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths ibgp 64
+    maximum-paths 64
   template peer SPINE
     remote-as 65000
     password 3 9125d59c18a9b015
@@ -209,14 +210,22 @@ Neighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
 
 spine1# sh ip bgp
    Network            Next Hop            Metric     LocPrf     Weight Path
-*>r10.0.0.0/32        0.0.0.0                  0        100      32768 ?
-*>e10.0.0.2/32        10.2.1.0                 0                     0 65001 ?
-*>e10.0.0.3/32        10.2.1.2                 0                     0 65002 ?
-*>e10.0.0.4/32        10.2.1.4                 0                     0 65003 ?
+*>e10.0.0.0/32        10.2.1.1                 0                     0 65000 ?
+*>e10.0.0.1/32        10.2.2.1                 0                     0 65000 ?
+*>r10.0.0.2/32        0.0.0.0                  0        100      32768 ?
+*|e10.0.0.3/32        10.2.2.1                                       0 65000 650
+02 ?
+*>e                   10.2.1.1                                       0 65000 650
+02 ?
+*|e10.0.0.4/32        10.2.2.1                                       0 65000 650
+03 ?
+*>e                   10.2.1.1                                       0 65000 650
+03 ?
 
 leaf1(config)# show ip route 10.0.0.3
-10.0.0.3/32, ubest/mbest: 1/0
-    *via 10.2.1.1, [20/0], 00:16:02, bgp-65001, external, tag 65000
+10.0.0.3/32, ubest/mbest: 2/0
+    *via 10.2.1.1, [20/0], 00:03:36, bgp-65001, external, tag 65000
+    *via 10.2.2.1, [20/0], 00:03:36, bgp-65001, external, tag 65000
 
 ```
 
@@ -377,5 +386,6 @@ AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Li
 
 ### Примечание:
 
-* ​	Добавил шаблоны конфигурации jinja для ibg и ebgp. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
+* ​	Добавил шаблоны конфигурации jinja для ibg и ebgp для nsos и eos. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
+* nx_os_loader_v2.py добавил в скрипт для конфигурирования устройств возможность потоковой работы с помощью ThreadPoolExecutor.
 
