@@ -1,1113 +1,378 @@
-Spine1#
-!Command: show running-config
-!Running configuration last done at: Thu Jun 15 14:34:52 2023
-!Time: Thu Jun 15 14:45:29 2023
-
-version 9.3(10) Bios:version  
-hostname Spine1
-vdc Spine1 id 1
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 511
-  limit-resource u4route-mem minimum 128 maximum 128
-  limit-resource u6route-mem minimum 96 maximum 96
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature ospf
-feature bgp
-feature isis
-feature bfd
-
-no password strength-check
-username admin password 5 $5$IEIGLG$CtLhiBwBhHS4y.QVkHK.Dh.JvyYJtokeSDx0JDSNuu9  role network-admin
-username cisco_automate password 5 $5$DONCKF$Yl7mkskY1.sBd.wqJurTRsHOGlnBjOw5PdkIs7OjWn/  role network-admin
-username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
-no ip domain-lookup
-ip domain-name cisco.com
-copp profile strict
-snmp-server user admin network-admin auth md5 497767F00A6A39E161660AD557A7FBE189FF priv 165B3BAE5A367DE3763B05885380B88ECCA8 localizedV2key
-snmp-server user cisco_automate network-admin auth md5 481A79B3054484B7DA18847AD6250C09118E priv 321827E7091D83BCCA4587268378781154DC localizedV2key
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-vlan 1
-
-key chain ISIS
-  key 0
-    key-string 7 070c285f4d06
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
-
-interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.1/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.3/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/3
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.5/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/4
-
-interface Ethernet1/5
-
-interface Ethernet1/6
-
-interface Ethernet1/7
-
-interface Ethernet1/8
-
-interface Ethernet1/9
-
-interface Ethernet1/10
-
-interface Ethernet1/11
-
-interface Ethernet1/12
-
-interface Ethernet1/13
-
-interface Ethernet1/14
-
-interface Ethernet1/15
-
-interface Ethernet1/16
-
-interface Ethernet1/17
-
-interface Ethernet1/18
-
-interface Ethernet1/19
-
-interface Ethernet1/20
-
-interface Ethernet1/21
-
-interface Ethernet1/22
-
-interface Ethernet1/23
-
-interface Ethernet1/24
-
-interface Ethernet1/25
-
-interface Ethernet1/26
-
-interface Ethernet1/27
-
-interface Ethernet1/28
-
-interface Ethernet1/29
-
-interface Ethernet1/30
-
-interface Ethernet1/31
-
-interface Ethernet1/32
-
-interface Ethernet1/33
-
-interface Ethernet1/34
-
-interface Ethernet1/35
-
-interface Ethernet1/36
-
-interface Ethernet1/37
-
-interface Ethernet1/38
-
-interface Ethernet1/39
-
-interface Ethernet1/40
-
-interface Ethernet1/41
-
-interface Ethernet1/42
-
-interface Ethernet1/43
-
-interface Ethernet1/44
-
-interface Ethernet1/45
-
-interface Ethernet1/46
-
-interface Ethernet1/47
-
-interface Ethernet1/48
-
-interface Ethernet1/49
-
-interface Ethernet1/50
-
-interface Ethernet1/51
-
-interface Ethernet1/52
-
-interface Ethernet1/53
-
-interface Ethernet1/54
-
-interface Ethernet1/55
-
-interface Ethernet1/56
-
-interface Ethernet1/57
-
-interface Ethernet1/58
-
-interface Ethernet1/59
-
-interface Ethernet1/60
-
-interface Ethernet1/61
-
-interface Ethernet1/62
-
-interface Ethernet1/63
-
-interface Ethernet1/64
-
-interface mgmt0
-  vrf member management
-  ip address 192.168.254.50/24
-
-interface loopback0
-  ip address 10.0.1.0/32
-  ip router isis UNDERLAY
-icam monitor scale
-
-cli alias name wr copy run start
-line console
-line vty
-router isis UNDERLAY
-  net 49.0001.0100.0000.1000.00
-  is-type level-2
-  max-lsp-lifetime 65535
-  set-overload-bit on-startup 180
-  log-adjacency-changes
-  authentication-type md5 level-2
-  authentication key-chain ISIS level-2
-
-
-
-========================================Spine2#
-!Command: show running-config
-!Running configuration last done at: Thu Jun 15 14:36:17 2023
-!Time: Thu Jun 15 14:46:18 2023
-
-version 9.3(10) Bios:version  
-hostname Spine2
-vdc Spine2 id 1
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 511
-  limit-resource u4route-mem minimum 128 maximum 128
-  limit-resource u6route-mem minimum 96 maximum 96
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature ospf
-feature bgp
-feature isis
-feature bfd
-
-no password strength-check
-username admin password 5 $5$NMLLHK$.O2UDyqpYJkf9p/5fAfbXRJsm9U9diN2XVih6fxVf97  role network-admin
-username cisco_automate password 5 $5$KBABHB$eaGyv7fki/ZIprws0r8cOWGIVeZ8XHCcqgRDxiWVri6  role network-admin
-username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
-no ip domain-lookup
-ip domain-name cisco.com
-copp profile strict
-snmp-server user admin network-admin auth md5 3767365F03837B4A9B6DFAD880FF323E0CBF priv 533113257CE36926E0558CBD557B80B971F8 localizedV2key
-snmp-server user cisco_automate network-admin auth md5 32088F94FF77C64EF45C329FB436E990EF4A priv 5206D3D4AD7D9E5DE40A4B84A96DA5C1F303 localizedV2key
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-vlan 1
-
-key chain ISIS
-  key 0
-    key-string 7 070c285f4d06
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
-
-interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.1/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.3/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/3
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.5/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/4
-
-interface Ethernet1/5
-
-interface Ethernet1/6
-
-interface Ethernet1/7
-
-interface Ethernet1/8
-
-interface Ethernet1/9
-
-interface Ethernet1/10
-
-interface Ethernet1/11
-
-interface Ethernet1/12
-
-interface Ethernet1/13
-
-interface Ethernet1/14
-
-interface Ethernet1/15
-
-interface Ethernet1/16
-
-interface Ethernet1/17
-
-interface Ethernet1/18
-
-interface Ethernet1/19
-
-interface Ethernet1/20
-
-interface Ethernet1/21
-
-interface Ethernet1/22
-
-interface Ethernet1/23
-
-interface Ethernet1/24
-
-interface Ethernet1/25
-
-interface Ethernet1/26
-
-interface Ethernet1/27
-
-interface Ethernet1/28
-
-interface Ethernet1/29
-
-interface Ethernet1/30
-
-interface Ethernet1/31
-
-interface Ethernet1/32
-
-interface Ethernet1/33
-
-interface Ethernet1/34
-
-interface Ethernet1/35
-
-interface Ethernet1/36
-
-interface Ethernet1/37
-
-interface Ethernet1/38
-
-interface Ethernet1/39
-
-interface Ethernet1/40
-
-interface Ethernet1/41
-
-interface Ethernet1/42
-
-interface Ethernet1/43
-
-interface Ethernet1/44
-
-interface Ethernet1/45
-
-interface Ethernet1/46
-
-interface Ethernet1/47
-
-interface Ethernet1/48
-
-interface Ethernet1/49
-
-interface Ethernet1/50
-
-interface Ethernet1/51
-
-interface Ethernet1/52
-
-interface Ethernet1/53
-
-interface Ethernet1/54
-
-interface Ethernet1/55
-
-interface Ethernet1/56
-
-interface Ethernet1/57
-
-interface Ethernet1/58
-
-interface Ethernet1/59
-
-interface Ethernet1/60
-
-interface Ethernet1/61
-
-interface Ethernet1/62
-
-interface Ethernet1/63
-
-interface Ethernet1/64
-
-interface mgmt0
-  vrf member management
-  ip address 192.168.254.51/24
-
-interface loopback0
-  ip address 10.0.1.1/32
-  ip router isis UNDERLAY
-icam monitor scale
-
-cli alias name wr copy run start
-line console
-line vty
-router isis UNDERLAY
-  net 49.0001.0100.0000.1001.00
-  is-type level-2
-  max-lsp-lifetime 65535
-  set-overload-bit on-startup 180
-  log-adjacency-changes
-  authentication-type md5 level-2
-  authentication key-chain ISIS level-2
-
-
-
-========================================leaf1#
-!Command: show running-config
-!Running configuration last done at: Thu Jun 15 14:37:07 2023
-!Time: Thu Jun 15 14:46:35 2023
-
-version 9.3(10) Bios:version  
+spine1#! Command: show running-config
+! device: spine1 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$ZaQE8G/2IqnD/6cH$265QeQboiEVY3/Zux3d33u.SL4WfIL8PIi.dqPiZ6rRq8W.fLFxNuBa3bydEHNNnYgmrvTGthStU/FrJLm3.l.
+username cisco_automate privilege 15 secret sha512 $6$3r3.6Gcfbum9C7XR$k5H709v337nLn/pN6WZD9GS00FZmGlCNGnrCvkE63lBROY7JlljwS447Xx6aiTvxDyOyxzF6B2RBNdvE2Vm/r0
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+no logging console
+!
+hostname spine1
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.10.1.1/31
+   bfd echo
+!
+interface Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.10.1.3/31
+   bfd echo
+!
+interface Ethernet3
+   mtu 9214
+   no switchport
+   ip address 10.10.1.5/31
+   bfd echo
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Ethernet9
+!
+interface Loopback0
+   ip address 10.8.0.0/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.55/24
+!
+ip routing
+no ip routing vrf management
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+peer-filter AS_FILTER
+   10 match as-range 65001-65999 result accept
+!
+router bgp 65000
+   router-id 10.8.0.0
+   timers bgp 1 3
+   maximum-paths 128
+   bgp listen range 10.10.0.0/22 peer-group LEAFS peer-filter 65001-65999
+   neighbor LEAFS peer group
+   neighbor LEAFS bfd
+   neighbor LEAFS password 7 qcZqPZg4u36aJMQlNFmhpQ==
+!
+end========================================spine2#! Command: show running-config
+! device: spine2 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$tF0jfbPJz0n7afI5$AmCHrF6AuQnFS2j7zqJMcSN6Ah9nq4q6OCpIIn3DBmdoB3wB8PqVMQ4yY42rFjp9kWgmxoebVa1.fiUND6YJt/
+username cisco_automate privilege 15 secret sha512 $6$T1nGGaybiYrhxRoE$RSzfsbs3fpgP4hCzq3HmsjEFTn8JdKJ5n4M6V1ImN6vD7zWswYGBgVm1xSmG5mnUSWoWuDzRbMCEjuDRjsM69/
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+no logging console
+!
+hostname spine2
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.10.2.1/31
+   bfd echo
+!
+interface Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.10.2.3/31
+   bfd echo
+!
+interface Ethernet3
+   mtu 9214
+   no switchport
+   ip address 10.10.2.5/31
+   bfd echo
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.8.0.1/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.56/24
+!
+ip routing
+no ip routing vrf management
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+peer-filter AS_FILTER
+   10 match as-range 65001-65999 result accept
+!
+router bgp 65000
+   router-id 10.8.0.1
+   timers bgp 1 3
+   maximum-paths 128
+   bgp listen range 10.10.0.0/22 peer-group LEAFS peer-filter 65001-65999
+   neighbor LEAFS peer group
+   neighbor LEAFS bfd
+   neighbor LEAFS password 7 qcZqPZg4u36aJMQlNFmhpQ==
+!
+end========================================leaf1#! Command: show running-config
+! device: leaf1 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$YfDRREzYI4S6jyO8$OTJqIGZNyKgIf/aWvLBccRIycNSP.h7x9JS9qpilKkyRonUGMd3n2u.PiJa8w2LK8ckz.tCHGGBcYnTJgczi9.
+username cisco_automate privilege 15 secret sha512 $6$LM/UuMgYQz1XD/dz$5haHgUZitrPRPTHksWCX9fnvHzGZbb6qzpmFd7ASxr1EM4pzycPn6.ZjUnZ9PPATM9BdhpoFAlWjGSztnWs631
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+no logging console
+!
 hostname leaf1
-vdc leaf1 id 1
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 511
-  limit-resource u4route-mem minimum 128 maximum 128
-  limit-resource u6route-mem minimum 96 maximum 96
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature ospf
-feature bgp
-feature isis
-feature bfd
-
-no password strength-check
-username admin password 5 $5$PLKEIG$iKmTBtWtznNw4sWE54KQN8i6SRtNFvUbIYMnh0Z8y4/  role network-admin
-username cisco_automate password 5 $5$NNEABC$.06YTaQhRWabNn/hYLpp63NUk2l3kNi8TtPTcvtLHtC  role network-admin
-username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
-no ip domain-lookup
-ip domain-name cisco.com
-copp profile strict
-snmp-server user admin network-admin auth md5 206B2A04450DCF8063F422A930896BF1FE27 priv 00451C217539EB8E658C6CE96BC831B4E772 localizedV2key
-snmp-server user cisco_automate network-admin auth md5 495251CBD8AC671DE6AF78348DD89AD68464 priv 52175CDCC9FE2548F7EB0407D7ED94D1CB73 localizedV2key
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-vlan 1
-
-key chain ISIS
-  key 0
-    key-string 7 070c285f4d06
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
-
-interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.0/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.0/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/3
-
-interface Ethernet1/4
-
-interface Ethernet1/5
-
-interface Ethernet1/6
-
-interface Ethernet1/7
-
-interface Ethernet1/8
-
-interface Ethernet1/9
-
-interface Ethernet1/10
-
-interface Ethernet1/11
-
-interface Ethernet1/12
-
-interface Ethernet1/13
-
-interface Ethernet1/14
-
-interface Ethernet1/15
-
-interface Ethernet1/16
-
-interface Ethernet1/17
-
-interface Ethernet1/18
-
-interface Ethernet1/19
-
-interface Ethernet1/20
-
-interface Ethernet1/21
-
-interface Ethernet1/22
-
-interface Ethernet1/23
-
-interface Ethernet1/24
-
-interface Ethernet1/25
-
-interface Ethernet1/26
-
-interface Ethernet1/27
-
-interface Ethernet1/28
-
-interface Ethernet1/29
-
-interface Ethernet1/30
-
-interface Ethernet1/31
-
-interface Ethernet1/32
-
-interface Ethernet1/33
-
-interface Ethernet1/34
-
-interface Ethernet1/35
-
-interface Ethernet1/36
-
-interface Ethernet1/37
-
-interface Ethernet1/38
-
-interface Ethernet1/39
-
-interface Ethernet1/40
-
-interface Ethernet1/41
-
-interface Ethernet1/42
-
-interface Ethernet1/43
-
-interface Ethernet1/44
-
-interface Ethernet1/45
-
-interface Ethernet1/46
-
-interface Ethernet1/47
-
-interface Ethernet1/48
-
-interface Ethernet1/49
-
-interface Ethernet1/50
-
-interface Ethernet1/51
-
-interface Ethernet1/52
-
-interface Ethernet1/53
-
-interface Ethernet1/54
-
-interface Ethernet1/55
-
-interface Ethernet1/56
-
-interface Ethernet1/57
-
-interface Ethernet1/58
-
-interface Ethernet1/59
-
-interface Ethernet1/60
-
-interface Ethernet1/61
-
-interface Ethernet1/62
-
-interface Ethernet1/63
-
-interface Ethernet1/64
-
-interface mgmt0
-  vrf member management
-  ip address 192.168.254.52/24
-
-interface loopback0
-  ip address 10.0.1.2/32
-  ip router isis UNDERLAY
-icam monitor scale
-
-cli alias name wr copy run start
-line console
-line vty
-router isis UNDERLAY
-  net 49.0001.0100.0000.1002.00
-  is-type level-2
-  max-lsp-lifetime 65535
-  set-overload-bit on-startup 180
-  log-adjacency-changes
-  authentication-type md5 level-2
-  authentication key-chain ISIS level-2
-
-
-
-========================================leaf2#
-!Command: show running-config
-!Running configuration last done at: Thu Jun 15 14:37:35 2023
-!Time: Thu Jun 15 14:46:31 2023
-
-version 9.3(10) Bios:version  
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.10.1.0/31
+   bfd echo
+!
+interface Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.10.2.0/31
+   bfd echo
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Ethernet9
+!
+interface Loopback0
+   ip address 10.8.0.2/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.57/24
+!
+ip routing
+no ip routing vrf management
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map REDISTRIBUTE_CONNECTED permit 10
+   match interface Loopback0
+!
+peer-filter AS_FILTER
+!
+router bgp 65001
+   router-id 10.8.0.2
+   timers bgp 1 3
+   maximum-paths 128
+   neighbor SPINES peer group
+   neighbor SPINES remote-as 65000
+   neighbor SPINES bfd
+   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
+   neighbor 10.10.1.1 peer group SPINES
+   neighbor 10.10.2.1 peer group SPINES
+   redistribute connected route-map REDISTRIBUTE_CONNECTED
+!
+end========================================leaf2#! Command: show running-config
+! device: leaf2 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$IzTwkTFsy6OQ8/so$hucB.CtEcXuFhzouX/yK31z.kEJsJARBjbovk.8WE7u9CF4qYqnpBs1BeSisUzkmuzTtusBhzny8zuzku5lfh1
+username cisco_automate privilege 15 secret sha512 $6$KfQPKFi6kUC01xBI$q8pzkj.qcJVpFKp/gAn3jTYlJjdQyxal5vAVPGsKrNB3v5SqrZ8D8fTgDomxOXATPzmpEM8iG0P9Uwos/ktJH/
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+no logging console
+!
 hostname leaf2
-vdc leaf2 id 1
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 511
-  limit-resource u4route-mem minimum 128 maximum 128
-  limit-resource u6route-mem minimum 96 maximum 96
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature ospf
-feature bgp
-feature isis
-feature bfd
-
-no password strength-check
-username admin password 5 $5$CDGNFD$b3PdIiscF6Sfg3zfztjI19KPcr2yHPqRf8Q4PFGEomC  role network-admin
-username cisco_automate password 5 $5$FPCKMM$GWJomdBYiANEflFl4zJKhbHUQF9fRbuf3Fse.e4OlJ2  role network-admin
-username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
-no ip domain-lookup
-ip domain-name cisco.com
-copp profile strict
-snmp-server user admin network-admin auth md5 042BEE020656E2CEAD7DE2CA9B32B7D5ED42 priv 0041FE161F5FD6F5D024CBE5987CAEC28C63 localizedV2key
-snmp-server user cisco_automate network-admin auth md5 207FAD865557ABBB60F90E4CC6773829F344 priv 204AE984420AA4E664DE4D2383203427E458 localizedV2key
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-vlan 1
-
-key chain ISIS
-  key 0
-    key-string 7 070c285f4d06
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
-
-interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.2/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.2/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/3
-
-interface Ethernet1/4
-
-interface Ethernet1/5
-
-interface Ethernet1/6
-
-interface Ethernet1/7
-
-interface Ethernet1/8
-
-interface Ethernet1/9
-
-interface Ethernet1/10
-
-interface Ethernet1/11
-
-interface Ethernet1/12
-
-interface Ethernet1/13
-
-interface Ethernet1/14
-
-interface Ethernet1/15
-
-interface Ethernet1/16
-
-interface Ethernet1/17
-
-interface Ethernet1/18
-
-interface Ethernet1/19
-
-interface Ethernet1/20
-
-interface Ethernet1/21
-
-interface Ethernet1/22
-
-interface Ethernet1/23
-
-interface Ethernet1/24
-
-interface Ethernet1/25
-
-interface Ethernet1/26
-
-interface Ethernet1/27
-
-interface Ethernet1/28
-
-interface Ethernet1/29
-
-interface Ethernet1/30
-
-interface Ethernet1/31
-
-interface Ethernet1/32
-
-interface Ethernet1/33
-
-interface Ethernet1/34
-
-interface Ethernet1/35
-
-interface Ethernet1/36
-
-interface Ethernet1/37
-
-interface Ethernet1/38
-
-interface Ethernet1/39
-
-interface Ethernet1/40
-
-interface Ethernet1/41
-
-interface Ethernet1/42
-
-interface Ethernet1/43
-
-interface Ethernet1/44
-
-interface Ethernet1/45
-
-interface Ethernet1/46
-
-interface Ethernet1/47
-
-interface Ethernet1/48
-
-interface Ethernet1/49
-
-interface Ethernet1/50
-
-interface Ethernet1/51
-
-interface Ethernet1/52
-
-interface Ethernet1/53
-
-interface Ethernet1/54
-
-interface Ethernet1/55
-
-interface Ethernet1/56
-
-interface Ethernet1/57
-
-interface Ethernet1/58
-
-interface Ethernet1/59
-
-interface Ethernet1/60
-
-interface Ethernet1/61
-
-interface Ethernet1/62
-
-interface Ethernet1/63
-
-interface Ethernet1/64
-
-interface mgmt0
-  vrf member management
-  ip address 192.168.254.53/24
-
-interface loopback0
-  ip address 10.0.1.3/32
-  ip router isis UNDERLAY
-icam monitor scale
-
-cli alias name wr copy run start
-line console
-line vty
-router isis UNDERLAY
-  net 49.0001.0100.0000.1003.00
-  is-type level-2
-  max-lsp-lifetime 65535
-  set-overload-bit on-startup 180
-  log-adjacency-changes
-  authentication-type md5 level-2
-  authentication key-chain ISIS level-2
-
-
-
-========================================leaf3#
-!Command: show running-config
-!Running configuration last done at: Thu Jun 15 14:38:19 2023
-!Time: Thu Jun 15 14:46:43 2023
-
-version 9.3(10) Bios:version  
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.10.1.2/31
+   bfd echo
+!
+interface Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.10.2.2/31
+   bfd echo
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.8.0.3/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.58/24
+!
+ip routing
+no ip routing vrf management
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map REDISTRIBUTE_CONNECTED permit 10
+   match interface Loopback0
+!
+peer-filter AS_FILTER
+!
+router bgp 65002
+   router-id 10.8.0.3
+   timers bgp 1 3
+   maximum-paths 128
+   neighbor SPINES peer group
+   neighbor SPINES remote-as 65000
+   neighbor SPINES bfd
+   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
+   neighbor 10.10.1.3 peer group SPINES
+   neighbor 10.10.2.3 peer group SPINES
+   redistribute connected route-map REDISTRIBUTE_CONNECTED
+!
+end========================================leaf3#! Command: show running-config
+! device: leaf3 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$Dz/2ECURqgbNowny$cxGjsS.MknG27Lb/qQ9ucVLPl446PCnc4UUjq1FhPMbSWgW09WBw9BEpSP9uQnf3ZzGXTHFAPWYHS8kIMWxHk1
+username cisco_automate privilege 15 secret sha512 $6$3X14vtNiFKkowp8t$FfeDct3NdXHgGhJEZeJ7VHqLa.wtc.yZMzyINcyZVYUw6abfWufQupxmVdGi33YFBRBtcR9./9cYCpLVNyfnM0
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+no logging console
+!
 hostname leaf3
-vdc leaf3 id 1
-  limit-resource vlan minimum 16 maximum 4094
-  limit-resource vrf minimum 2 maximum 4096
-  limit-resource port-channel minimum 0 maximum 511
-  limit-resource u4route-mem minimum 128 maximum 128
-  limit-resource u6route-mem minimum 96 maximum 96
-  limit-resource m4route-mem minimum 58 maximum 58
-  limit-resource m6route-mem minimum 8 maximum 8
-
-feature ospf
-feature bgp
-feature isis
-feature bfd
-
-no password strength-check
-username admin password 5 $5$OMAAAO$T2bQ/c/1OX8gN.TkmxcQ0sNBTVeaX9MZE4reO2tm.K8  role network-admin
-username cisco_automate password 5 $5$GCHHAP$pnuikGj31dX9fFdRZdnhmpt8RnyEEN7rzswgC8nyypD  role network-admin
-username cisco_automate passphrase  lifetime 99999 warntime 14 gracetime 3
-no ip domain-lookup
-ip domain-name cisco.com
-copp profile strict
-snmp-server user admin network-admin auth md5 52226C244CE52A2A1C91AD0529DE1AA45C28 priv 166A531D57A47C1C219CE1153F815DE45B66 localizedV2key
-snmp-server user cisco_automate network-admin auth md5 364E43802ECDC75B052F5AA7DA5563D10D85 priv 53007DB315A4AA642904178757CBB11976AB localizedV2key
-rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
-rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
-rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
-rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
-rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
-
-vlan 1
-
-key chain ISIS
-  key 0
-    key-string 7 070c285f4d06
-vrf context management
-  ip route 0.0.0.0/0 mgmt0 192.168.254.1
-
-
-interface Ethernet1/1
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.1.4/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/2
-  no switchport
-  mtu 9216
-  medium p2p
-  no ip redirects
-  ip address 10.2.2.4/31
-  no isis hello-padding always
-  isis network point-to-point
-  isis authentication-type md5 level-2
-  isis authentication key-chain ISIS level-2
-  ip router isis UNDERLAY
-  no shutdown
-
-interface Ethernet1/3
-
-interface Ethernet1/4
-
-interface Ethernet1/5
-
-interface Ethernet1/6
-
-interface Ethernet1/7
-
-interface Ethernet1/8
-
-interface Ethernet1/9
-
-interface Ethernet1/10
-
-interface Ethernet1/11
-
-interface Ethernet1/12
-
-interface Ethernet1/13
-
-interface Ethernet1/14
-
-interface Ethernet1/15
-
-interface Ethernet1/16
-
-interface Ethernet1/17
-
-interface Ethernet1/18
-
-interface Ethernet1/19
-
-interface Ethernet1/20
-
-interface Ethernet1/21
-
-interface Ethernet1/22
-
-interface Ethernet1/23
-
-interface Ethernet1/24
-
-interface Ethernet1/25
-
-interface Ethernet1/26
-
-interface Ethernet1/27
-
-interface Ethernet1/28
-
-interface Ethernet1/29
-
-interface Ethernet1/30
-
-interface Ethernet1/31
-
-interface Ethernet1/32
-
-interface Ethernet1/33
-
-interface Ethernet1/34
-
-interface Ethernet1/35
-
-interface Ethernet1/36
-
-interface Ethernet1/37
-
-interface Ethernet1/38
-
-interface Ethernet1/39
-
-interface Ethernet1/40
-
-interface Ethernet1/41
-
-interface Ethernet1/42
-
-interface Ethernet1/43
-
-interface Ethernet1/44
-
-interface Ethernet1/45
-
-interface Ethernet1/46
-
-interface Ethernet1/47
-
-interface Ethernet1/48
-
-interface Ethernet1/49
-
-interface Ethernet1/50
-
-interface Ethernet1/51
-
-interface Ethernet1/52
-
-interface Ethernet1/53
-
-interface Ethernet1/54
-
-interface Ethernet1/55
-
-interface Ethernet1/56
-
-interface Ethernet1/57
-
-interface Ethernet1/58
-
-interface Ethernet1/59
-
-interface Ethernet1/60
-
-interface Ethernet1/61
-
-interface Ethernet1/62
-
-interface Ethernet1/63
-
-interface Ethernet1/64
-
-interface mgmt0
-  vrf member management
-  ip address 192.168.254.54/24
-
-interface loopback0
-  ip address 10.0.1.4/32
-  ip router isis UNDERLAY
-icam monitor scale
-
-cli alias name wr copy run start
-line console
-line vty
-router isis UNDERLAY
-  net 49.0001.0100.0000.1004.00
-  is-type level-2
-  max-lsp-lifetime 65535
-  set-overload-bit on-startup 180
-  log-adjacency-changes
-  authentication-type md5 level-2
-  authentication key-chain ISIS level-2
-
-
-
-========================================
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   mtu 9214
+   no switchport
+   ip address 10.10.1.4/31
+   bfd echo
+!
+interface Ethernet2
+   mtu 9214
+   no switchport
+   ip address 10.10.2.4/31
+   bfd echo
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.8.0.4/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.59/24
+!
+ip routing
+no ip routing vrf management
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map REDISTRIBUTE_CONNECTED permit 10
+   match interface Loopback0
+!
+peer-filter AS_FILTER
+!
+router bgp 65003
+   router-id 10.8.0.4
+   timers bgp 1 3
+   maximum-paths 128
+   neighbor SPINES peer group
+   neighbor SPINES remote-as 65000
+   neighbor SPINES bfd
+   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
+   neighbor 10.10.1.5 peer group SPINES
+   neighbor 10.10.2.5 peer group SPINES
+   redistribute connected route-map REDISTRIBUTE_CONNECTED
+!
+end========================================

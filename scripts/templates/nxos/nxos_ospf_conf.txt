@@ -1,4 +1,7 @@
 no router isis UNDERLAY
+no router bgp {{ device_params.ASN_ibgp }}
+no router bgp {{ device_params.ASN_ebgp }}
+
 router ospf UNDERLAY
 router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
 

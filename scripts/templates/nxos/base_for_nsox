@@ -3,7 +3,7 @@ cli alias name wr copy run start
 
 interface mgmt0
   vrf member management
-  ip address 192.168.254.54/24
+  ip address 192.168.254.53/24
 
 vrf context management
   ip route 0.0.0.0/0 mgmt0 192.168.254.1

@@ -1,0 +1,14 @@
+{% for intf, ip in device_params.int_num.items() %}
+default interface {{ intf }}
+interface {{ intf }}
+{% if 'Eth' in intf %}
+no switchport
+mtu 9214
+ip address {{ ip }}
+bfd echo
+no shutdown
+{% elif 'Lo' in intf %}
+ip address {{ ip }}
+no shutdown
+{% endif %}
+{% endfor %}

@@ -1,3 +1,4 @@
+### Cisco Nexus POD_1
 - device_type: cisco_nxos
   host: 192.168.254.50
   username: cisco_automate
@@ -24,27 +25,28 @@
   password: Cisco_automate#1
   timeout: 50
 
-#- device_type: arista
+### Arista POD_2
+#- device_type: arista_eos
 #  host: 192.168.254.55
 #  username: cisco_automate
 #  password: Cisco_automate#1
 #  timeout: 50
-#- device_type: arista
+#- device_type: arista_eos
 #  host: 192.168.254.56
 #  username: cisco_automate
 #  password: Cisco_automate#1
 #  timeout: 50
-#- device_type: arista
+#- device_type: arista_eos
 #  host: 192.168.254.57
 #  username: cisco_automate
 #  password: Cisco_automate#1
 #  timeout: 50
-#- device_type: arista
+#- device_type: arista_eos
 #  host: 192.168.254.58
 #  username: cisco_automate
 #  password: Cisco_automate#1
 #  timeout: 50
-#- device_type: arista
+#- device_type: arista_eos
 #  host: 192.168.254.59
 #  username: cisco_automate
 #  password: Cisco_automate#1

@@ -2,12 +2,7 @@ import yaml
 from pprint import pprint
 from netmiko import Netmiko, NetmikoBaseException
 from paramiko.ssh_exception import SSHException
-
-
-def yaml_load(filename):
-    with open(filename) as f:
-        output = yaml.safe_load(f)
-    return output
+from nx_os_loader_v1 import yaml_load
 
 def send_show_command(device, commands):
     try:

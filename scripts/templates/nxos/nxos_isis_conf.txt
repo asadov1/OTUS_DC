@@ -1,4 +1,6 @@
 no router ospf UNDERLAY
+no router bgp {{ device_params.ASN_ibgp }}
+no router bgp {{ device_params.ASN_ebgp }}
 key chain ISIS
 key 0
 key-string cisco

@@ -2,4 +2,4 @@
 
 {% include 'nxos_intf_conf.txt' %}
 
-{% include 'nxos_isis_conf.txt' %}
+{% include 'nxos_ospf_conf.txt' %}
