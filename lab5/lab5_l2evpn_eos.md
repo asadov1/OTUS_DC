@@ -43,7 +43,7 @@
 
 **Топология EVE nexus & arista :**
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab4/eve_bgp.png" style="zoom:40%;" />
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_evpn_l2.png" style="zoom:150%;" />
 
 ### Примененные конфигурации EOS для настройки ebgp:
 
