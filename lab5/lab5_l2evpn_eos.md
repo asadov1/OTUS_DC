@@ -441,9 +441,19 @@ _***Немного смотрим wireshark:***_
 
 - Сбросил полностью bgp на leaf1 и включил в wireshark фильтра _**bgp.update.path_attributes**_ чтобы посмотреть все сообщения update. Также после установки сессии underlay ebgp выполнил ping между service_1 на leaf1 и leaf3. Для установки маршрутов и mac-ip.
 
-  
+  - Видим, что нам пришел BGP update из Underlay сети от Spine1. В NLRI видим информацию о loopback адресах на leaf2 и leaf3. Также в соседнем update отдаем в сторону Spine1 (и Spine2) информацию о анансируемых loopback на leaf1.
 
+  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_up_under.png" style="zoom:80%;" />
 
+  - Далее от Spine1 (и Spine2 конечно тоже) получаем update evpn type 3
+
+    - Данный update c next-hop 10.9.0.3 те от leaf3. Также подобные update есть от leaf2. В целом их количесво зависит от количество VNI передавемых в update.
+    - В NLRI видим, что это маршрут Route 3, в данном случае он нужен для подписки данного VTEP на рассылку BUM трафика.
+    - Также в NLRI видим информацию об RD для 10.8.0.3:10023 для обеспечения уникальность информации пришедшей от leaf3 
+    - В extended_community видим значение RT 65000:10023, для импорта/экспорта информации в vrf 65000 и информацию  о типе инкапсуляции - VXLAN
+    - Далее в атрибуте PMSI_TUNNEL_ATTRIBUE (Provider Multicast Service Interface) мы видим, что  наш vtep leaf1 в данном update подписывается на прием информации BUM от VNI 10023
+
+    
 
 ### Примечание:
 
