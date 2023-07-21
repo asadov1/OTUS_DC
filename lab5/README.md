@@ -466,7 +466,7 @@ _***Немного смотрим wireshark:***_
     - Для передачи данных самих данных через data plane передаем VNI: 10021.
     - В Ex. communities передаем RT для импорта/экспорта информации в mac-vrf 65000:10021
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL2route.png" style="zoom:80%;" />
+	   <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL2route.png" style="zoom:80%;" />
 
 
 
@@ -508,7 +508,7 @@ _***Немного смотрим wireshark:***_
 - Связность в настроенной модели vlan aware работает.
 - Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
 
-​																	<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
 
 
 
