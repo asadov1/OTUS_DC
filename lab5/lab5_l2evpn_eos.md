@@ -54,7 +54,7 @@
 
 ### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service:
 
-_**Пример конфигурации интерфейса spine/leaf  для arista**:_
+_**Пример конфигурации интерфейса spine/leaf **:_
 
 ```
 interface Ethernet1
@@ -467,7 +467,52 @@ _***Немного смотрим wireshark:***_
     - Для передачи данных самих данных через data plane передаем VNI: 10021.
     - В Ex. communities передаем RT для импорта/экспорта информации в mac-vrf 65000:10021
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL2route.png" style="zoom:80%;" />
+
+
+
+
+
+### Примененные конфигурации EOS для настройки ebgp c Vlan Aware Service:
+
+_**Конфигурации BGP для leaf1, leaf2, leaf3 (изменения только в настройке vlan):**_
+
+- В данной конфигурации мы назначамем общие значения RD и RT для всех клиентов на каждом leaf. Изменения только в RD, для идентификации IP каждого leaf.
+- все остальные настройка аналогичны vlan base
+
+```
+leaf1:
+   vlan-aware-bundle SERVICES
+      rd 10.8.0.2:10000
+      route-target both 65000:10000
+      redistribute learned
+      vlan 20-30
+      
+leaf2:
+  vlan-aware-bundle SERVICES
+      rd 10.8.0.3:10000
+      route-target both 65000:10000
+      redistribute learned
+      vlan 20-30
+    
+ leaf3:
+  vlan-aware-bundle SERVICES
+      rd 10.8.0.4:10000
+      route-target both 65000:10000
+      redistribute learned
+      vlan 20-30
+    
+```
+
+
+
+
+
+
+
+
+
+
 
 ### Примечание:
 
