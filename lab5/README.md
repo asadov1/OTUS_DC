@@ -453,7 +453,7 @@ _***Немного смотрим wireshark:***_
     - В extended_community видим значение RT 65000:10023 для импорта/экспорта информации в vrf 65000 и информацию о типе инкапсуляции - VXLAN
     - Далее в атрибуте PMSI_TUNNEL_ATTRIBUE (Provider Multicast Service Interface) мы видим, что  наш vtep leaf1 в данном update подписывается на прием информации BUM от VNI 10023
 
-    <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
+      <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
 
   - Следущий update это evpn **type-2**. Он в данном случае исходящий с leaf 1 в момент  запуска ping от Service_1 расположенном на leaf1.
 
@@ -508,7 +508,7 @@ _***Немного смотрим wireshark:***_
 - Связность в настроенной модели vlan aware работает.
 - Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
+​																	<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
 
 
 
