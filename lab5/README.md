@@ -509,9 +509,9 @@ _***Немного смотрим wireshark:***_
 
 - Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
 
-   
-   
-   
+  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" /> 
+  
+  
    ​    
 
 ### Примечание:
@@ -522,5 +522,5 @@ _***Немного смотрим wireshark:***_
 
 * Планирую сделать Ansible проект аналогично моему самописному скрипту на python для автоматизации сценарием конфигураций Underlay и Overlay в лабе.
 
-  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
+  
 
