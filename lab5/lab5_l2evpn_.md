@@ -54,7 +54,7 @@
 
 ### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service:
 
-_**Пример конфигурации интерфейса spine/leaf **:_
+_**Пример конфигурации интерфейса spine/leaf :**_
 
 ```
 interface Ethernet1
