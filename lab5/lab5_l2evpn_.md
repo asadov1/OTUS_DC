@@ -71,7 +71,6 @@ interface Loopback0
 **spine1/2 (_конфигурации полностью идентичны_):**
 
 - service routing protocols model multi-agent - без этой команды не работал evpn, не знаю это особенность виртуалки или также работает на железке.
-- Кстати в версии eos 4.29.2F не понадобилось деактивировать соседство в evpn в AF IPv4.
 
 ```
 service routing protocols model multi-agent 
@@ -506,8 +505,8 @@ leaf2:
 
 _***Немного смотрим wireshark:***_
 
-- Связность в настроенно vlan aware работает.
-- Основное, что мы видим это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
+- Связность в настроенной модели vlan aware работает.
+- Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
 
 <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
 
