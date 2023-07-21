@@ -1,5 +1,0 @@
-{% include 'eos_base_conf.txt' %}
-
-{% include 'eos_intf_conf.txt' %}
-
-{% include 'eos_ebgp_conf.txt' %}

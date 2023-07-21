@@ -1,5 +1,0 @@
-{% include 'nxos_base_conf.txt' %}
-
-{% include 'nxos_intf_conf.txt' %}
-
-{% include 'nxos_ospf_conf.txt' %}
