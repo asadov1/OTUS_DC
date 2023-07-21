@@ -70,7 +70,8 @@ interface Loopback0
 
 **spine1/2 (_конфигурации полностью идентичны_):**
 
-- service routing protocols model multi-agent - _без этой команды не работал evpn, не знаю это особенность виртуалки или также работат на железке_
+- service routing protocols model multi-agent - без этой команды не работал evpn, не знаю это особенность виртуалки или также работает на железке.
+- Кстати в версии eos 4.29.2F не понадобилось деактивировать соседство в evpn в AF IPv4.
 
 ```
 service routing protocols model multi-agent 
@@ -87,15 +88,15 @@ router bgp 65000
    router-id 10.8.0.0
    timers bgp 1 3
    maximum-paths 128
-   bgp listen range 10.8.0.0/24 peer-group LEAF_OVERLAY pee9
-   bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY p9
+   bgp listen range 10.8.0.0/24 peer-group LEAF_OVERLAY peer-filter 65001-65999
+   bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY peer-filter 65001-65999
    neighbor LEAF_OVERLAY peer group
    neighbor LEAF_OVERLAY update-source Loopback0
    neighbor LEAF_OVERLAY ebgp-multihop
    neighbor LEAF_OVERLAY send-community
    neighbor LEAF_UNDERLAY peer group
    neighbor LEAF_UNDERLAY bfd
-   neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ=
+   neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ==
    neighbor SPINE_OVERLAY peer group
    neighbor SPINE_OVERLAY ebgp-multihop 2
    redistribute connected route-map REDISTRIBUTE_CONNECTED
@@ -445,21 +446,36 @@ _***Немного смотрим wireshark:***_
 
   <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_up_under.png" style="zoom:80%;" />
 
-  - Далее от Spine1 (и Spine2 конечно тоже) получаем update evpn type 3
+  - Далее от Spine1 (и Spine2 конечно тоже) получаем update evpn **type-3**
 
-    - Данный update c next-hop 10.9.0.3 те от leaf3. Также подобные update есть от leaf2. В целом их количесво зависит от количество VNI передавемых в update.
+    - Данный update c next-hop 10.9.0.3 т.е. от leaf2. Также подобные update есть от leaf3. В целом их количесво зависит от количества VNI передавемых в update.
     - В NLRI видим, что это маршрут Route 3, в данном случае он нужен для подписки данного VTEP на рассылку BUM трафика.
     - Также в NLRI видим информацию об RD для 10.8.0.3:10023 для обеспечения уникальность информации пришедшей от leaf3 
-    - В extended_community видим значение RT 65000:10023, для импорта/экспорта информации в vrf 65000 и информацию  о типе инкапсуляции - VXLAN
+    - В extended_community видим значение RT 65000:10023 для импорта/экспорта информации в vrf 65000 и информацию о типе инкапсуляции - VXLAN
     - Далее в атрибуте PMSI_TUNNEL_ATTRIBUE (Provider Multicast Service Interface) мы видим, что  наш vtep leaf1 в данном update подписывается на прием информации BUM от VNI 10023
 
-    
+    <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
+
+  - Следущий update это evpn **type-2**. Он в данном случае исходящий с leaf 1 в момент  запуска ping от Service_1 расположенном на leaf1.
+
+    - В MP_REACH_NLRI передаем адрес lo1 на leaf1 как next-hop.
+    - В NLRI EVPN видим типа маршрута 2.
+    - Указываетcя наш RT 10.8.0.2:10021 для соотвествия IP.
+    - В поле MAC_Adress видим mac от выученного устройства Servicre1 на leaf1.
+    - Ethenet tag - 0 (тк VLAN BASE модель).
+    - IP Adrees поле пусто так как фабрика данный момент L2.
+    - Для передачи данных самих данных через data plane передаем VNI: 10021.
+    - В Ex. communities передаем RT для импорта/экспорта информации в mac-vrf 65000:10021
+
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
 
 ### Примечание:
 
-* ​	Добавил шаблоны конфигурации jinja для ibg и ebgp для nsos и eos. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
+* Добавил шаблоны конфигурации jinja для ibg и ebgp для nsos и eos. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
 
 * nx_os_loader_v2.py добавил в скрипт для конфигурирования устройств возможность потоковой работы с помощью ThreadPoolExecutor.
+
+* Планирую сделать Ansible проект аналогично моему самописному скрипту на python для автоматизации сценарием конфигураций Underlay и Overlay в лабе.
 
   
 
