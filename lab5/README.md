@@ -506,13 +506,12 @@ leaf2:
 _***Немного смотрим wireshark:***_
 
 - Связность в настроенной модели vlan aware работает.
+
 - Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
 
-           <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
-
-
-
-
+       <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" />
+       
+       
 
 ### Примечание:
 
