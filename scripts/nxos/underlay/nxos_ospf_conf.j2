@@ -1,0 +1,13 @@
+no router isis UNDERLAY
+no router bgp {{ device_params.ASN_ibgp }}
+no router bgp {{ device_params.ASN_ebgp }}
+
+router ospf UNDERLAY
+router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+
+
+{% for intf in device_params.int_num.keys() %}
+interface {{ intf }}
+ip router ospf UNDERLAY area 0
+ip ospf message-digest-key 1 md5 cisco
+{% endfor %}
