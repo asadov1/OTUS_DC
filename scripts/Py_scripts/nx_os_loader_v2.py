@@ -24,7 +24,7 @@ def generate_config(template, data_dict):
     templ = env.get_template(templ_file)
     return templ.render(data_dict)
 
-def send_config_commands(device, config_commands, save_conf=False):
+def send_config_commands(device, config_commands, save_conf=True):
     try:
         with Netmiko(**device) as conn:
             conn.enable()
@@ -55,9 +55,9 @@ def send_config_commands_to_devices(devices, config_commands, save_conf=False, l
 
 
 if __name__ == '__main__':
-    template_file = "templates/nxos/underlay/nxos_conf.j2"
-    conf_params = yaml_load("data_files/conf_underlay.yml")
-    conn_params = yaml_load("data_files/devices_nxos.yml")
+    template_file = "templates/eos/eos_conf.j2"
+    conf_params = yaml_load("data_files/conf_eos.yml")
+    conn_params = yaml_load("data_files/devices_eos.yml")
 
     devices_configs = []
     for device in conn_params:
