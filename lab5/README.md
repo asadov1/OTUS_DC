@@ -91,13 +91,11 @@ router bgp 65000
    bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY peer-filter 65001-65999
    neighbor LEAF_OVERLAY peer group
    neighbor LEAF_OVERLAY update-source Loopback0
-   neighbor LEAF_OVERLAY ebgp-multihop
+   neighbor LEAF_OVERLAY ebgp-multihop 2
    neighbor LEAF_OVERLAY send-community
    neighbor LEAF_UNDERLAY peer group
    neighbor LEAF_UNDERLAY bfd
    neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ==
-   neighbor SPINE_OVERLAY peer group
-   neighbor SPINE_OVERLAY ebgp-multihop 2
    redistribute connected route-map REDISTRIBUTE_CONNECTED
    !
    address-family evpn
