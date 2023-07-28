@@ -2,7 +2,7 @@
 
 ### Цели:
 
-- Настроить Overlay на основе VxLAN EVPN для L2 связанности между клиентами
+- Настроить маршрутизацию в рамках Overlay между клиентами
 
 **План IP адресации**
 
@@ -52,7 +52,7 @@
 
 <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_evpn_l2.png" style="zoom:200%;" />
 
-### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service:
+### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service и L3 Symmetric:
 
 _**Пример конфигурации интерфейса spine/leaf :**_
 
@@ -110,6 +110,13 @@ service routing protocols model multi-agent
 ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
 ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
 
+vrf instance SERVICE
+ip routing
+ip routing vrf SERVICE
+no ip routing vrf management
+
+ip virtual-router mac-address 00:00:22:22:33:33
+
 route-map REDISTRIBUTE_CONNECTED permit 10
    match ip address prefix-list REDISTRIBUTE_CONNECTED
 
@@ -121,6 +128,7 @@ router bgp 65001
    neighbor SPINE_OVERLAY remote-as 65000
    neighbor SPINE_OVERLAY update-source Loopback0
    neighbor SPINE_OVERLAY ebgp-multihop 2
+   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
    neighbor SPINE_OVERLAY send-community
    neighbor SPINE_UNDERLAY peer group
    neighbor SPINE_UNDERLAY remote-as 65000
@@ -134,19 +142,35 @@ router bgp 65001
    !
    vlan 21
       rd 10.8.0.2:10021
-      route-target both 65000:10021
+      route-target both 1:10021
+      redistribute learned
+   !
+   vlan 22
+      rd 10.8.0.2:10022
+      route-target both 1:10022
       redistribute learned
    !
    address-family evpn
       neighbor SPINE_OVERLAY activate
    !
-   address-family ipv4
-      no neighbor SPINE_OVERLAY activate
+   vrf SERVICE
+      rd 10.8.0.2:65000
+      route-target import evpn 1:65000
+      route-target export evpn 1:65000
 
 interface Vxlan1
    vxlan source-interface Loopback1
    vxlan udp-port 4789
    vxlan vlan 20-30 vni 10020-10030
+   vxlan vrf SERVICE vni 65000
+
+interface Vlan21
+   vrf SERVICE
+   ip address virtual 10.11.1.254/24
+!
+interface Vlan22
+   vrf SERVICE
+   ip address virtual 10.11.2.254/24
 ```
 
 _**leaf2:**_
@@ -156,6 +180,13 @@ service routing protocols model multi-agent
 
 ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
 ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
+
+vrf instance SERVICE
+ip routing
+ip routing vrf SERVICE
+no ip routing vrf management
+
+ip virtual-router mac-address 00:00:22:22:33:33
 
 route-map REDISTRIBUTE_CONNECTED permit 10
    match ip address prefix-list REDISTRIBUTE_CONNECTED
@@ -168,6 +199,7 @@ router bgp 65002
    neighbor SPINE_OVERLAY remote-as 65000
    neighbor SPINE_OVERLAY update-source Loopback0
    neighbor SPINE_OVERLAY ebgp-multihop 2
+   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
    neighbor SPINE_OVERLAY send-community
    neighbor SPINE_UNDERLAY peer group
    neighbor SPINE_UNDERLAY remote-as 65000
@@ -179,26 +211,42 @@ router bgp 65002
    neighbor 10.10.2.3 peer group SPINE_UNDERLAY
    redistribute connected route-map REDISTRIBUTE_CONNECTED
    !
+   vlan 21
+      rd 10.8.0.3:10021
+      route-target both 1:10021
+      redistribute learned
+   !
    vlan 22
       rd 10.8.0.3:10022
-      route-target both 65000:10022
+      route-target both 1:10022
       redistribute learned
    !
    vlan 23
       rd 10.8.0.3:10023
-      route-target both 65000:10023
+      route-target both 1:10023
       redistribute learned
    !
    address-family evpn
       neighbor SPINE_OVERLAY activate
    !
-   address-family ipv4
-      no neighbor SPINE_OVERLAY activate
+   vrf SERVICE
+      rd 10.8.0.3:65000
+      route-target import evpn 1:65000
+      route-target export evpn 1:65000
 
 interface Vxlan1
    vxlan source-interface Loopback1
    vxlan udp-port 4789
    vxlan vlan 20-30 vni 10020-10030
+   vxlan vrf SERVICE vni 65000
+
+interface Vlan21
+   vrf SERVICE
+   ip address virtual 10.11.1.254/24
+!
+interface Vlan22
+   vrf SERVICE
+   ip address virtual 10.11.2.254/24
 ```
 
 _**leaf3:**_
@@ -208,6 +256,13 @@ service routing protocols model multi-agent
 
 ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
 ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
+
+vrf instance SERVICE
+ip routing
+ip routing vrf SERVICE
+no ip routing vrf management
+
+ip virtual-router mac-address 00:00:22:22:33:33
 
 route-map REDISTRIBUTE_CONNECTED permit 10
    match ip address prefix-list REDISTRIBUTE_CONNECTED
@@ -220,6 +275,7 @@ router bgp 65003
    neighbor SPINE_OVERLAY remote-as 65000
    neighbor SPINE_OVERLAY update-source Loopback0
    neighbor SPINE_OVERLAY ebgp-multihop 2
+   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
    neighbor SPINE_OVERLAY send-community
    neighbor SPINE_UNDERLAY peer group
    neighbor SPINE_UNDERLAY remote-as 65000
@@ -233,23 +289,40 @@ router bgp 65003
    !
    vlan 21
       rd 10.8.0.4:10021
-      route-target both 65000:10021
+      route-target both 1:10021
+      redistribute learned
+   !
+   vlan 22
+      rd 10.8.0.4:10022
+      route-target both 1:10022
       redistribute learned
    !
    vlan 23
       rd 10.8.0.4:10023
-      route-target both 65000:10023
+      route-target both 1:10023
       redistribute learned
    !
    address-family evpn
       neighbor SPINE_OVERLAY activate
    !
-   address-family ipv4
-      no neighbor SPINE_OVERLAY activate
+   vrf SERVICE
+      rd 10.8.0.4:65000
+      route-target import evpn 1:65000
+      route-target export evpn 1:65000
+
 interface Vxlan1
    vxlan source-interface Loopback1
    vxlan udp-port 4789
    vxlan vlan 20-30 vni 10020-10030
+   vxlan vrf SERVICE vni 65000
+
+interface Vlan21
+   vrf SERVICE
+   ip address virtual 10.11.1.254/24
+!
+interface Vlan22
+   vrf SERVICE
+   ip address virtual 10.11.2.254/24
 ```
 
 
@@ -264,45 +337,54 @@ BGP summary information for VRF default
 Router identifier 10.8.0.0, local AS number 65000
 Neighbor Status Codes: m - Under maintenance
   Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.8.0.2  4 65001          72085     72086    0    0 17:03:42 Estab(NotNegotiated)
-  10.8.0.3  4 65002          71907     71935    0    0 17:01:36 Estab(NotNegotiated)
-  10.8.0.4  4 65003          72121     72105    0    0 17:03:42 Estab(NotNegotiated)
-  10.10.1.0 4 65001          71904     71905    0    0 17:01:40 Estab   2      2
-  10.10.1.2 4 65002          71925     71960    0    0 17:01:40 Estab   2      2
-  10.10.1.4 4 65003          71930     71944    0    0 17:01:40 Estab   2      2
+  10.8.0.2  4 65001            633       635    0    0 00:08:46 Estab   2      2
+  10.8.0.3  4 65002            636       626    0    0 00:08:42 Estab   2      2
+  10.8.0.4  4 65003            633       630    0    0 00:08:46 Estab   2      2
+  10.10.1.0 4 65001            626       624    0    0 00:08:47 Estab   2      2
+  10.10.1.2 4 65002            623       622    0    0 00:08:47 Estab   2      2
+  10.10.1.4 4 65003            623       623    0    0 00:08:47 Estab   2      2
 
-spine2#show ip bgp summary
+spine2(config)#show ip bgp summary
 BGP summary information for VRF default
 Router identifier 10.8.0.1, local AS number 65000
 Neighbor Status Codes: m - Under maintenance
-  Neighbor         V  AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.10.2.0        4  65001            348       347    0    0 00:05:39 Estab   1      1
-  10.10.2.2        4  65002            342       341    0    0 00:05:35 Estab   1      1
-  10.10.2.4        4  65003            338       337    0    0 00:05:31 Estab   1      1
+  Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
+  10.8.0.2  4 65001            647       649    0    0 00:08:58 Estab   2      2
+  10.8.0.3  4 65002            647       645    0    0 00:09:00 Estab   2      2
+  10.8.0.4  4 65003            650       645    0    0 00:08:57 Estab   2      2
+  10.10.2.0 4 65001            639       637    0    0 00:09:00 Estab   2      2
+  10.10.2.2 4 65002            639       639    0    0 00:09:00 Estab   2      2
+  10.10.2.4 4 65003            640       641    0    0 00:08:59 Estab   2      2
 
-leaf1(config)#sh ip bgp summary
+leaf1#show ip bgp summary
 BGP summary information for VRF default
 Router identifier 10.8.0.2, local AS number 65001
 Neighbor Status Codes: m - Under maintenance
   Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.10.1.1 4 65000          89277     89294    0    0 17:02:50 Estab   5      5
-  10.10.2.1 4 65000          84502     84493    0    0 17:03:56 Estab   5      5
+  10.8.0.0  4 65000            688       685    0    0 00:09:31 Estab   5      5
+  10.8.0.1  4 65000            687       684    0    0 00:09:30 Estab   5      5
+  10.10.1.1 4 65000            676       678    0    0 00:09:32 Estab   5      5
+  10.10.2.1 4 65000            675       675    0    0 00:09:32 Estab   5      5
   
-leaf2#sh ip bgp summary
+leaf2#show ip bgp summary
 BGP summary information for VRF default
 Router identifier 10.8.0.3, local AS number 65002
 Neighbor Status Codes: m - Under maintenance
   Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.10.1.3 4 65000          88776     88724    0    0 17:03:10 Estab   5      5
-  10.10.2.3 4 65000          83990     83975    0    0 17:02:25 Estab   5      5
-
+  10.8.0.0  4 65000            697       709    0    0 00:09:42 Estab   5      5
+  10.8.0.1  4 65000            704       705    0    0 00:09:48 Estab   5      5
+  10.10.1.3 4 65000            693       693    0    0 00:09:48 Estab   5      5
+  10.10.2.3 4 65000            694       695    0    0 00:09:48 Estab   5      5
+  
 leaf3#show ip bgp summary
 BGP summary information for VRF default
 Router identifier 10.8.0.4, local AS number 65003
 Neighbor Status Codes: m - Under maintenance
   Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.10.1.5 4 65000          88432     88437    0    0 17:03:45 Estab   5      5
-  10.10.2.5 4 65000          83658     83729    0    0 17:03:00 Estab   5      5
+  10.8.0.0  4 65000            718       719    0    0 00:10:00 Estab   5      5
+  10.8.0.1  4 65000            717       722    0    0 00:09:59 Estab   5      5
+  10.10.1.5 4 65000            710       709    0    0 00:10:01 Estab   5      5
+  10.10.2.5 4 65000            711       711    0    0 00:10:01 Estab   5      5
 
 ```
 
@@ -316,9 +398,9 @@ BGP summary information for VRF default
 Router identifier 10.8.0.0, local AS number 65000
 Neighbor Status Codes: m - Under maintenance
   Neighbor V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.8.0.2 4 65001          72709     72704    0    0 17:12:30 Estab   1      1
-  10.8.0.3 4 65002          72529     72553    0    0 17:10:24 Estab   2      2
-  10.8.0.4 4 65003          72740     72725    0    0 17:12:30 Estab   2      2
+  10.8.0.2 4 65001            751       755    0    0 00:10:29 Estab   4      4
+  10.8.0.3 4 65002            758       746    0    0 00:10:25 Estab   5      5
+  10.8.0.4 4 65003            753       750    0    0 00:10:28 Estab   5      5
   
 spine2#show bgp evpn summary
 BGP summary information for VRF default
@@ -356,7 +438,7 @@ Neighbor Status Codes: m - Under maintenance
 
 
 
-***Проверка доступности между Service_1_leaf1 c ip 10.11.1.100 и Service_1_leaf3 с ip 10.11.1.101***
+***Проверка доступности между Service_1_leaf1 c ip 10.11.1.100 и Service_3_leaf3 с ip 10.11.3.1010***
 
 ```
 Service_1_l1> ping 10.11.1.101
@@ -364,53 +446,37 @@ Service_1_l1> ping 10.11.1.101
 84 bytes from 10.11.1.101 icmp_seq=2 ttl=64 time=18.610 ms
 84 bytes from 10.11.1.101 icmp_seq=3 ttl=64 time=28.706 ms
 
-Service_1_l3> ping 10.11.1.100
-84 bytes from 10.11.1.100 icmp_seq=1 ttl=64 time=38.630 ms
-84 bytes from 10.11.1.100 icmp_seq=2 ttl=64 time=16.611 ms
-84 bytes from 10.11.1.100 icmp_seq=3 ttl=64 time=28.116 ms
+Service_3_l3> ping 10.11.3.100
+84 bytes from 10.11.3.100 icmp_seq=1 ttl=64 time=38.630 ms
+84 bytes from 10.11.3.100 icmp_seq=2 ttl=64 time=16.611 ms
+84 bytes from 10.11.3.100 icmp_seq=3 ttl=64 time=28.116 ms
 ```
 
 ```
-leaf1(config)#show vxlan vtep detail
+leaf1#show vxlan vtep detail
 Remote VTEPS for Vxlan1:
 
 VTEP           Learned Via         MAC Address Learning       Tunnel Type(s)
 -------------- ------------------- -------------------------- --------------
+10.9.0.3       control plane       control plane              unicast, flood
 10.9.0.4       control plane       control plane              unicast, flood
 
-leaf3#show vxlan vtep detail
+Total number of remote VTEPS:  2
+leaf1#
+leaf1#
+leaf1#show vxlan vtep detail
 Remote VTEPS for Vxlan1:
 
 VTEP           Learned Via         MAC Address Learning       Tunnel Type(s)
 -------------- ------------------- -------------------------- --------------
-10.9.0.2       control plane       control plane              flood, unicast
-10.9.0.3       control plane       control plane              flood
+10.9.0.3       control plane       control plane              unicast, flood
+10.9.0.4       control plane       control plane              unicast, flood
+
+Total number of remote VTEPS:  2
 ```
 
 ```
-leaf3#show bgp evpn route-type mac-ip
-BGP routing table information for VRF default
-Router identifier 10.8.0.4, local AS number 65003
-Route status codes: * - valid, > - active, S - Stale, E - ECMP head, e - ECMP
-                    c - Contributing to ECMP, % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
-
-          Network                Next Hop              Metric  LocPref Weight  Path
- * >Ec    RD: 10.8.0.2:10021 mac-ip 0050.7966.683d
-                                 10.9.0.2              -       100     0       65000 65001 i
- *  ec    RD: 10.8.0.2:10021 mac-ip 0050.7966.683d
-                                 10.9.0.2              -       100     0       65000 65001 i
- * >      RD: 10.8.0.4:10023 mac-ip 0050.7966.683f
-                                 -                     -       -       0       i
- * >      RD: 10.8.0.4:10021 mac-ip 0050.7966.6840
-                                 -                     -       -       0       i
- * >Ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843
-                                 10.9.0.3              -       100     0       65000 65002 i
- *  ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843
-                                 10.9.0.3              -       100     0       65000 65002 i
-                                 
-leaf1(config)#show bgp evpn route-type mac-ip
+leaf1#show bgp evpn route-type mac-ip
 BGP routing table information for VRF default
 Router identifier 10.8.0.2, local AS number 65001
 Route status codes: * - valid, > - active, S - Stale, E - ECMP head, e - ECMP
@@ -421,96 +487,58 @@ AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Li
           Network                Next Hop              Metric  LocPref Weight  Path
  * >      RD: 10.8.0.2:10021 mac-ip 0050.7966.683d
                                  -                     -       -       0       i
+ * >      RD: 10.8.0.2:10021 mac-ip 0050.7966.683d 10.11.1.100
+                                 -                     -       -       0       i
  * >Ec    RD: 10.8.0.4:10023 mac-ip 0050.7966.683f
                                  10.9.0.4              -       100     0       65000 65003 i
  *  ec    RD: 10.8.0.4:10023 mac-ip 0050.7966.683f
                                  10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:10021 mac-ip 0050.7966.6840
+ * >Ec    RD: 10.8.0.4:10023 mac-ip 0050.7966.683f 10.11.3.100
                                  10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:10021 mac-ip 0050.7966.6840
+ *  ec    RD: 10.8.0.4:10023 mac-ip 0050.7966.683f 10.11.3.100
                                  10.9.0.4              -       100     0       65000 65003 i
  * >Ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843
                                  10.9.0.3              -       100     0       65000 65002 i
  *  ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843
                                  10.9.0.3              -       100     0       65000 65002 i
+ * >Ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843 10.11.3.101
+                                 10.9.0.3              -       100     0       65000 65002 i
+ *  ec    RD: 10.8.0.3:10023 mac-ip 0050.7966.6843 10.11.3.101
+                                 10.9.0.3              -       100     0       65000 65002 i
 ```
+
+_**Видим, что маршруты до 10.11.3.100 на leaf 3 в vlan 23 доступен через Spine1 и Spine 2. Также видим связку vni 10023 и L3VNI 65000 для маршрутизации. Также для проверки симметричной модели убрал vlan23 с leaf1.**_
+
+```
+leaf1#show bgp evpn route-type mac-ip 10.11.3.100 detail
+BGP routing table information for VRF default
+Router identifier 10.8.0.2, local AS number 65001
+BGP routing table entry for mac-ip 0050.7966.683f 10.11.3.100, Route Distinguisher: 10.8.0.4:10023
+ Paths: 2 available
+  65000 65003
+    10.9.0.4 from 10.8.0.0 (10.8.0.0)
+      Origin IGP, metric -, localpref 100, weight 0, tag 0, valid, external, ECMP head, ECMP, best, ECMP contributor
+      Extended Community: Route-Target-AS:1:10023 Route-Target-AS:1:65000 TunnelEncap:tunnelTypeVxlan EvpnRouterMac:50:5f:8e:f8:90:42
+      VNI: 10023 L3 VNI: 65000 ESI: 0000:0000:0000:0000:0000
+  65000 65003
+    10.9.0.4 from 10.8.0.1 (10.8.0.1)
+      Origin IGP, metric -, localpref 100, weight 0, tag 0, valid, external, ECMP, ECMP contributor
+      Extended Community: Route-Target-AS:1:10023 Route-Target-AS:1:65000 TunnelEncap:tunnelTypeVxlan EvpnRouterMac:50:5f:8e:f8:90:42
+      VNI: 10023 L3 VNI: 65000 ESI: 0000:0000:0000:0000:0000
+```
+
+
 
 _***Немного смотрим wireshark:***_
 
 - Сбросил полностью bgp на leaf1 и включил в wireshark фильтра _**bgp.update.path_attributes**_ чтобы посмотреть все сообщения update. Также после установки сессии underlay ebgp выполнил ping между service_1 на leaf1 и leaf3. Для установки маршрутов и mac-ip.
 
-  - Видим, что нам пришел BGP update из Underlay сети от Spine1. В NLRI видим информацию о loopback адресах на leaf2 и leaf3. Также в соседнем update отдаем в сторону Spine1 (и Spine2) информацию о анансируемых loopback на leaf1.
+  -  
 
-  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_up_under.png" style="zoom:80%;" />
-
-  - Далее от Spine1 (и Spine2 конечно тоже) получаем update evpn **type-3**
-
-    - Данный update c next-hop 10.9.0.3 т.е. от leaf2. Также подобные update есть от leaf3. В целом их количесво зависит от количества VNI передавемых в update.
-    - В NLRI видим, что это маршрут Route 3, в данном случае он нужен для подписки данного VTEP на рассылку BUM трафика.
-    - Также в NLRI видим информацию об RD для 10.8.0.3:10023 для обеспечения уникальность информации пришедшей от leaf3 
-    - В extended_community видим значение RT 65000:10023 для импорта/экспорта информации в vrf 65000 и информацию о типе инкапсуляции - VXLAN
-    - Далее в атрибуте PMSI_TUNNEL_ATTRIBUE (Provider Multicast Service Interface) мы видим, что  наш vtep leaf1 в данном update подписывается на прием информации BUM от VNI 10023
-
-      <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL3route.png" style="zoom:80%;" />
-
-  - Следущий update это evpn **type-2**. Он в данном случае исходящий с leaf 1 в момент  запуска ping от Service_1 расположенном на leaf1.
-
-    - В MP_REACH_NLRI передаем адрес lo1 на leaf1 как next-hop.
-    - В NLRI EVPN видим типа маршрута 2.
-    - Указываетcя наш RT 10.8.0.2:10021 для соотвествия IP.
-    - В поле MAC_Adress видим mac от выученного устройства Servicre1 на leaf1.
-    - Ethenet tag - 0 (тк VLAN BASE модель).
-    - IP Adrees поле пусто так как фабрика данный момент L2.
-    - Для передачи данных самих данных через data plane передаем VNI: 10021.
-    - В Ex. communities передаем RT для импорта/экспорта информации в mac-vrf 65000:10021
-
-	   <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evpnL2route.png" style="zoom:80%;" />
+     
 
 
-
-
-
-### Примененные конфигурации EOS для настройки ebgp c Vlan Aware Service:
-
-_**Конфигурации BGP для leaf1, leaf2, leaf3 (изменения только в настройке vlan):**_
-
-- В данной конфигурации мы назначамем общие значения RD и RT для всех клиентов на каждом leaf. Изменения только в RD, для идентификации IP каждого leaf.
-- все остальные настройка аналогичны vlan base
-
-```
-leaf1:
-   vlan-aware-bundle SERVICES
-      rd 10.8.0.2:10000
-      route-target both 65000:10000
-      redistribute learned
-      vlan 20-30
-      
-leaf2:
-  vlan-aware-bundle SERVICES
-      rd 10.8.0.3:10000
-      route-target both 65000:10000
-      redistribute learned
-      vlan 20-30
-    
- leaf3:
-  vlan-aware-bundle SERVICES
-      rd 10.8.0.4:10000
-      route-target both 65000:10000
-      redistribute learned
-      vlan 20-30
-    
-```
-
-_***Немного смотрим wireshark:***_
-
-- Связность в настроенной модели vlan aware работает.
-
-- Основное, что мы видим - это Ethernet Tag для определения из какого vlan у нас прилетел изученый mac адрес. В данном случае это update от leaf3, vlan 21 и mac его клиента :68:40
-
-  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/evnl3_aware.png" style="zoom:80%;" /> 
-  
-  
-   ​    
+​     	
 
 ### Примечание:
 
