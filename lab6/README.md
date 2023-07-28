@@ -533,14 +533,35 @@ _***Немного смотрим wireshark:***_
 
 - Сбросил полностью bgp на leaf1 и включил в wireshark фильтра _**bgp.update.path_attributes**_ чтобы посмотреть все сообщения update. Также после установки сессии underlay ebgp выполнил ping между service_1 на leaf1 и leaf3. Для установки маршрутов и mac-ip.
 
-  -  
+  -  Помимо "обычных" маршрутов типа 2 и 3 видим маршрут типа 2 в котором видим стек меток (vni) 10023  для коммутации и 65000 для маршрутизации  в нашем vrf. 	Так же видим два RT для импорта в mac-vrf 10023 и наш ip-vrf 65000. 
 
-     
+  - Так же  видим поле с Tranitive EVPN, в котром находится mac адрес сгенерировнный leaf3, который будет переписан как dst при передачи пакета от leaf1 к leaf3. Кстати заметил в выводе leaf3, Transitive EVPN mac генерируется коммутатором в сервисном vlan 4096 и назначет источником vxlan и cpu.
+
+    ```
+    leaf3#sh mac address-table
+              Mac Address Table
+    ------------------------------------------------------------------
+    
+    Vlan    Mac Address       Type        Ports      Moves   Last Move
+    ----    -----------       ----        -----      -----   ---------
+    4069    50f3.a8aa.779e    DYNAMIC     Vx1        1       0:33:35 ago
+    4069* VLAN4069                         active    Cpu, Vx1
+    ```
+  
+    
+  
+  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab6/summ.png" style="zoom:100%;" />
+  
+   
 
 
 ​     	
 
 ### Примечание:
+
+* Посколько все варинаты конфигурации слабы такие как ebgp, ibgp, vlan_aware, vlan base И так далее автоматизировал через шаблоны jinja, то получилось пораскатывать разные сценарии и посотреть как работает сеть в различных реализациях.
+
+  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab6/summ.png" style="zoom:50%;" />
 
 * Добавил шаблоны конфигурации jinja для ibg и ebgp для nsos и eos. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
 
