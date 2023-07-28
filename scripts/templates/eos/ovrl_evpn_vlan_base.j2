@@ -1,0 +1,7 @@
+{% for vlan in device_params.vlans_bgp %}
+   vlan {{ vlan }}
+   rd {{ device_params.int_num['Lo0'].split('/')[0] }}:100{{ vlan }}
+   route-target both 1:100{{ vlan }}
+   redistribute learned
+
+{% endfor %}

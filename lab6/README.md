@@ -1,4 +1,4 @@
-# ДЗ №5
+# ДЗ №6
 
 ### Цели:
 
@@ -69,8 +69,6 @@ interface Loopback0
 ```
 
 **spine1/2 (_конфигурации полностью идентичны_):**
-
-- service routing protocols model multi-agent - без этой команды не работал evpn, не знаю это особенность виртуалки или также работает на железке.
 
 ```
 service routing protocols model multi-agent 
@@ -329,8 +327,6 @@ interface Vlan22
 
 ***Проверка установки соседства BGP Underlay между spine и leaf коммутаторами:***
 
-_**Вопрос:** Статус Estab(NotNegotiated) для evpn хостов при выводе show ip bgp summary это нормальная реакциия? Так как на самом деле в show bgp evpn summ все ок._
-
 ```
 spine1#show ip bgp summary
 BGP summary information for VRF default
@@ -531,7 +527,7 @@ BGP routing table entry for mac-ip 0050.7966.683f 10.11.3.100, Route Distinguish
 
 _***Немного смотрим wireshark:***_
 
-- Сбросил полностью bgp на leaf1 и включил в wireshark фильтра _**bgp.update.path_attributes**_ чтобы посмотреть все сообщения update. Также после установки сессии underlay ebgp выполнил ping между service_1 на leaf1 и leaf3. Для установки маршрутов и mac-ip.
+- Сбросил полностью bgp на leaf1 и включил в wireshark фильтра _**bgp.update.path_attributes**_ чтобы посмотреть все сообщения update. Также после установки сессии underlay ebgp выполнил ping между service_1 на leaf1 и service_3 leaf3.
 
   -  Помимо "обычных" маршрутов типа 2 и 3 видим маршрут типа 2 в котором видим стек меток (vni) 10023  для коммутации и 65000 для маршрутизации  в нашем vrf. 	Так же видим два RT для импорта в mac-vrf 10023 и наш ip-vrf 65000. 
 
@@ -559,13 +555,9 @@ _***Немного смотрим wireshark:***_
 
 ### Примечание:
 
-* Посколько все варинаты конфигурации слабы такие как ebgp, ibgp, vlan_aware, vlan base И так далее автоматизировал через шаблоны jinja, то получилось пораскатывать разные сценарии и посотреть как работает сеть в различных реализациях.
+* Так как все варинаты конфигурации лабы такие как ebgp, ibgp, vlan_aware, vlan base И так далее автоматизированы через шаблоны jinja2, то получилось пораскатывать разные сценарии и посмотреть как работает сеть в различных реализациях.
 
-  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab6/summ.png" style="zoom:50%;" />
-
-* Добавил шаблоны конфигурации jinja для ibg и ebgp для nsos и eos. Объеденил их через if/elif внутри шаблона. Убрал пересечения между работой шаблона для ibgp и ebgp конфигураций.
-
-* nx_os_loader_v2.py добавил в скрипт для конфигурирования устройств возможность потоковой работы с помощью ThreadPoolExecutor.
+  <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab6/j2_1.png" style="zoom:40%;" /> <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab6/j2_2.png" style="zoom:35%;" />
 
 * Планирую сделать Ansible проект аналогично моему самописному скрипту на python для автоматизации сценариев конфигураций Underlay и Overlay в лабе.
 

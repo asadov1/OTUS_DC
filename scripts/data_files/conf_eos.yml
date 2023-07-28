@@ -1,6 +1,7 @@
 ---
 ### Arista devices ###
 devices:
+#
 # Spines
   192.168.254.55:
     hostname: spine1
@@ -29,6 +30,7 @@ devices:
       Eth2: 10.10.2.3/31
       Eth3: 10.10.2.5/31
       Lo0: 10.8.0.1/32
+#
 # Leafs
   192.168.254.57:
     hostname: leaf1
@@ -39,6 +41,13 @@ devices:
     multihop: 2
     RT: 10000
     vlan: 20-30
+    vni: 10020-10030
+    vmac: 00:00:22:22:33:33
+    vrf_name: SERVICE_1
+    svi_ip:
+      vlan21: 10.11.1.254/24
+      vlan22: 10.11.2.254/24
+#      vlan23: 10.11.3.254/24
     int_num:
       Eth1: 10.10.1.0/31
       Eth2: 10.10.2.0/31
@@ -50,6 +59,10 @@ devices:
     bgp_neighbor_ovl:
       - 10.8.0.0
       - 10.8.0.1
+    vlans_bgp:
+      - 21
+      - 22
+#      - 23
 #
   192.168.254.58:
     hostname: leaf2
@@ -60,6 +73,13 @@ devices:
     multihop: 2
     RT: 10000
     vlan: 20-30
+    vni: 10020-10030
+    vmac: 00:00:22:22:33:33
+    vrf_name: SERVICE_1
+    svi_ip:
+      vlan21: 10.11.1.254/24
+      vlan22: 10.11.2.254/24
+      vlan23: 10.11.3.254/24
     int_num:
       Eth1: 10.10.1.2/31
       Eth2: 10.10.2.2/31
@@ -71,6 +91,10 @@ devices:
     bgp_neighbor_ovl:
       - 10.8.0.0
       - 10.8.0.1
+    vlans_bgp:
+      - 21
+      - 22
+      - 23
 #
   192.168.254.59:
     hostname: leaf3
@@ -81,6 +105,12 @@ devices:
     multihop: 2
     RT: 10000
     vlan: 20-30
+    vni: 10020-10030
+    vrf_name: SERVICE_1
+    svi_ip:
+      vlan21: 10.11.1.254/24
+      vlan22: 10.11.2.254/24
+      vlan23: 10.11.3.254/24
     int_num:
       Eth1: 10.10.1.4/31
       Eth2: 10.10.2.4/31
@@ -92,3 +122,7 @@ devices:
     bgp_neighbor_ovl:
       - 10.8.0.0
       - 10.8.0.1
+    vlans_bgp:
+      - 21
+      - 22
+      - 23

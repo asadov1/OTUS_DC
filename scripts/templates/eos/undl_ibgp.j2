@@ -1,0 +1,37 @@
+{% if 'spine' in device_params.hostname %}
+  ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+  route-map REDISTRIBUTE_CONNECTED permit 10
+  match ip address prefix-list REDISTRIBUTE_CONNECTED
+  router bgp {{ device_params.ASN_ibgp }}
+  maximum-paths 128
+  timers bgp 1 3
+  router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+  bgp listen range {{ device_params.prefix }} peer-group LEAFS_UNDERLAY remote-as {{ device_params.ASN_ibgp }}
+  neighbor LEAFS_UNDERLAY peer group
+  neighbor LEAFS_UNDERLAY next-hop-self
+  neighbor LEAFS_UNDERLAY bfd
+  neighbor LEAFS_UNDERLAY route-reflector-client
+  neighbor LEAFS_UNDERLAY password 0 cisco
+  redistribute connected route-map REDISTRIBUTE_CONNECTED
+
+
+{% elif 'leaf' in device_params.hostname %}
+  ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+  ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
+  route-map REDISTRIBUTE_CONNECTED permit 10
+  match ip address prefix-list REDISTRIBUTE_CONNECTED
+  router bgp {{ device_params.ASN_ibgp }}
+  router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+  maximum-paths 128
+  timers bgp 1 3
+  neighbor SPINES_UNDERLAY peer group
+  neighbor SPINES_UNDERLAY remote-as {{ device_params.ASN_ibgp }}
+  neighbor SPINES_UNDERLAY bfd
+  neighbor SPINES_UNDERLAY password 0 cisco
+  redistribute connected route-map REDISTRIBUTE_CONNECTED
+
+{% for neib in device_params.bgp_neighbor %}
+  neighbor {{ neib }} peer group SPINES_UNDERLAY
+
+{% endfor %}
+{% endif %}

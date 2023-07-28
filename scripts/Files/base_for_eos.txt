@@ -1,0 +1,11 @@
+no logging console
+
+vrf instance management
+interface Management1
+vrf management
+ip address 192.168.254.55/24
+
+vrf instance management
+ip route vrf management 0.0.0.0/0 management 1 192.168.254.1
+
+username cisco_automate privilege 15 secret 0 Cisco_automate#1

@@ -1,0 +1,43 @@
+no router ospf UNDERLAY
+no router isis UNDERLAY
+no router bgp {{ device_params.ASN_ibgp }}
+no router bgp {{ device_params.ASN_ebgp }}
+
+
+{% if 'spine' in device_params.hostname %}
+route-map REDISTRIBUTE_CONNECTED permit 10
+  match interface loopback0
+router bgp {{ device_params.ASN_ibgp }}
+  router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+  reconnect-interval 12
+  address-family ipv4 unicast
+      maximum-paths ibgp 64
+  neighbor {{ device_params.prefix }}
+    remote-as {{ device_params.ASN_ibgp }}
+    password 0 cisco
+    timers {{ device_params.timers }}
+    maximum-peers 10
+    address-family ipv4 unicast
+      route-reflector-client
+      next-hop-self all
+
+{% elif 'leaf' in device_params.hostname %}
+route-map REDISTRIBUTE_CONNECTED permit 10
+  match interface loopback0
+router bgp {{ device_params.ASN_ibgp }}
+  router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+  reconnect-interval 12
+  bestpath as-path multipath-relax
+  address-family ipv4 unicast
+    redistribute direct route-map REDISTRIBUTE_CONNECTED
+    maximum-paths ibgp 64
+  template peer SPINE
+    remote-as {{ device_params.ASN_ibgp }}
+    password 0 cisco
+    timers {{ device_params.timers }}
+    address-family ipv4 unicast
+  {% for neib in device_params.bgp_neighbor %}
+  neighbor {{ neib }}
+    inherit peer SPINE
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,7 @@
+{% if 'leaf' in device_params.hostname %}
+  interface Vxlan1
+  vxlan source-interface Loopback1
+  vxlan udp-port 4789
+  vxlan vlan add {{ device_params.vlan }} vni {{ device_params.vni }}
+
+ {% endif %}

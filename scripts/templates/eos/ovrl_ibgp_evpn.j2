@@ -1,0 +1,26 @@
+{% if 'spine' in device_params.hostname %}
+  router bgp {{ device_params.ASN_ibgp }}
+  bgp listen range {{ device_params.prefix_ovl }} peer-group LEAF_OVERLAY remote-as {{ device_params.ASN_ibgp }}
+  neighbor LEAF_OVERLAY peer group
+  neighbor LEAF_OVERLAY update-source Loopback0
+  neighbor LEAF_OVERLAY route-reflector-client
+  neighbor LEAF_OVERLAY password cisco
+  neighbor LEAF_OVERLAY send-community
+  address-family evpn
+  neighbor LEAF_OVERLAY activate
+
+{% elif 'leaf' in device_params.hostname %}
+  router bgp {{ device_params.ASN_ibgp }}
+  neighbor SPINE_OVERLAY peer group
+  neighbor SPINE_OVERLAY remote-as 65000
+  neighbor SPINE_OVERLAY password cisco
+  neighbor SPINE_OVERLAY update-source Loopback0
+  neighbor SPINE_OVERLAY send-community
+  address-family evpn
+  neighbor SPINE_OVERLAY activate
+
+{% for neib in device_params.bgp_neighbor_ovl %}
+   neighbor {{ neib }} peer group SPINE_OVERLAY
+
+{% endfor %}
+{% endif %}

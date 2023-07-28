@@ -1,0 +1,14 @@
+{% if 'leaf' in device_params.hostname %}
+ip virtual-router mac-address {{ device_params.vmac }}
+vrf instance SERVICE
+ip routing vrf SERVICE
+
+{% for vlan, ip in device_params.svi_ip.items() %}
+  no interface {{ vlan }}
+  interface {{ vlan }}
+  vrf SERVICE
+  ip address virtual {{ ip }}
+
+{% endfor %}
+{% endif %}
+

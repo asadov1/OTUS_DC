@@ -1,0 +1,22 @@
+{% if 'leaf' in device_params.hostname %}
+ vrf SERVICE
+ rd {{ device_params.int_num['Lo0'].split('/')[0] }}:{{ device_params.ASN_ibgp }}
+ route-target import evpn 1:{{ device_params.ASN_ibgp }}
+ route-target export evpn 1:{{ device_params.ASN_ibgp }}
+
+  interface Vxlan1
+  vxlan vrf SERVICE vni {{ device_params.ASN_ibgp }}
+
+  ip virtual-router mac-address {{ device_params.vmac }}
+  vrf instance SERVICE
+  ip routing vrf SERVICE
+
+{% for vlan, ip in device_params.svi_ip.items() %}
+  no interface {{ vlan }}
+  interface {{ vlan }}
+  vrf SERVICE
+  ip address virtual {{ ip }}
+
+{% endfor %}
+{% endif %}
+
