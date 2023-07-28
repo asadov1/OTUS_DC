@@ -52,7 +52,7 @@
 
 <img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab5/bgp_evpn_l2.png" style="zoom:200%;" />
 
-### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service и L3 Symmetric:
+### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service и L3 Symmetric IRB:
 
 _**Пример конфигурации интерфейса spine/leaf :**_
 
