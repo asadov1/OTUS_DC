@@ -61,20 +61,6 @@ _**Выполненые действия по конфигурированию :
 
 ### Примененные конфигурации:
 
-_**Пример конфигурации интерфейса spine/leaf :**_
-
-```
-interface Ethernet1
-   mtu 9214
-   no switchport
-   ip address 10.10.1.1/31
-   bfd echo
-   
-interface Loopback0
-   ip address 10.8.0.0/32
-
-```
-
 **spine1:**
 
 ```
