@@ -1,0 +1,7 @@
+no router ospf UNDERLAY
+no router isis UNDERLAY
+no interface Vxlan1
+no router bgp {{ device_params.ASN_ibgp }}
+no router bgp {{ device_params.ASN_ebgp }}
+no route-map REDISTRIBUTE_CONNECTED
+clear ip arp vrf all

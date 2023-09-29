@@ -38,7 +38,7 @@ def send_config_commands(device, config_commands, save_conf=False):
 
 if __name__ == '__main__':
     # template_file = "templates/nxos/nxos_conf.j2"
-    # template_file = "templates/eos/run_conf.j2"
+    # template_file = "templates/eos/run_conf_eos.j2"
     conf_params = yaml_load("../data_files/conf_nxos.yml")
     conn_params = yaml_load("../data_files/devices_nxos.yml")
 

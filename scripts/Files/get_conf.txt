@@ -5,12 +5,12 @@ spine1#! Command: show running-config
 !
 no aaa root
 !
-username admin privilege 15 role network-admin secret sha512 $6$ZaQE8G/2IqnD/6cH$265QeQboiEVY3/Zux3d33u.SL4WfIL8PIi.dqPiZ6rRq8W.fLFxNuBa3bydEHNNnYgmrvTGthStU/FrJLm3.l.
-username cisco_automate privilege 15 secret sha512 $6$3r3.6Gcfbum9C7XR$k5H709v337nLn/pN6WZD9GS00FZmGlCNGnrCvkE63lBROY7JlljwS447Xx6aiTvxDyOyxzF6B2RBNdvE2Vm/r0
+username admin privilege 15 role network-admin secret sha512 $6$VcD5PRtkHRNp9n/k$gblN326pD0K9hxBtikyel5m7NsJajwgSSdIZ4303tDsJq3OW6z7ToWqohKFIP3Y8uRIg/8sw5SUPVJCE9Udtr.
+username cisco_automate privilege 15 secret sha512 $6$.lMSlsrAEKdct6jN$iDZAcXmfVKrTapkafwUANBRqnNXr3geqAu2xuJ25.LV9yiJBlKHeGFLFu.LiCZsRnmOwImz.tExiS4ZG01Rn//
 !
 transceiver qsfp default-mode 4x10G
 !
-service routing protocols model ribd
+service routing protocols model multi-agent
 !
 no logging console
 !
@@ -48,19 +48,22 @@ interface Ethernet7
 !
 interface Ethernet8
 !
-interface Ethernet9
-!
 interface Loopback0
    ip address 10.8.0.0/32
 !
 interface Management1
    vrf management
-   ip address 192.168.254.55/24
+   ip address 192.168.254.60/24
 !
 ip routing
 no ip routing vrf management
 !
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+!
 ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map REDISTRIBUTE_CONNECTED permit 10
+   match ip address prefix-list REDISTRIBUTE_CONNECTED
 !
 peer-filter AS_FILTER
    10 match as-range 65001-65999 result accept
@@ -69,10 +72,24 @@ router bgp 65000
    router-id 10.8.0.0
    timers bgp 1 3
    maximum-paths 128
-   bgp listen range 10.10.0.0/22 peer-group LEAFS peer-filter 65001-65999
-   neighbor LEAFS peer group
-   neighbor LEAFS bfd
-   neighbor LEAFS password 7 qcZqPZg4u36aJMQlNFmhpQ==
+   bgp listen range 10.8.0.0/24 peer-group LEAF_OVERLAY peer-filter 65001-65999
+   bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY peer-filter 65001-65999
+   neighbor LEAF_OVERLAY peer group
+   neighbor LEAF_OVERLAY update-source Loopback0
+   neighbor LEAF_OVERLAY ebgp-multihop
+   neighbor LEAF_OVERLAY password 7 knxssjklOKRtJkTNdlNFCw==
+   neighbor LEAF_OVERLAY send-community
+   neighbor LEAF_UNDERLAY peer group
+   neighbor LEAF_UNDERLAY bfd
+   neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ==
+   neighbor SPINE_OVERLAY peer group
+   redistribute connected route-map REDISTRIBUTE_CONNECTED
+   !
+   address-family evpn
+      neighbor LEAF_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
 !
 end========================================spine2#! Command: show running-config
 ! device: spine2 (vEOS-lab, EOS-4.29.2F)
@@ -81,12 +98,12 @@ end========================================spine2#! Command: show running-config
 !
 no aaa root
 !
-username admin privilege 15 role network-admin secret sha512 $6$tF0jfbPJz0n7afI5$AmCHrF6AuQnFS2j7zqJMcSN6Ah9nq4q6OCpIIn3DBmdoB3wB8PqVMQ4yY42rFjp9kWgmxoebVa1.fiUND6YJt/
-username cisco_automate privilege 15 secret sha512 $6$T1nGGaybiYrhxRoE$RSzfsbs3fpgP4hCzq3HmsjEFTn8JdKJ5n4M6V1ImN6vD7zWswYGBgVm1xSmG5mnUSWoWuDzRbMCEjuDRjsM69/
+username admin privilege 15 role network-admin secret sha512 $6$4.ELo9oCo2cFZsox$IYJEHcYobpwG/pbf.4lBvXC.w6RZe44DOjgwN1xQJRdzL2gd6EzMuR5t754K/DTPH7lp7IponoiXe.Ns7CYXU.
+username cisco_automate privilege 15 secret sha512 $6$62exOJ065CCcYpL9$ptx/.xaJXg0GRfWLJPY8Utr75LzkjrdzNuhvlv/ORpEYjFDGblbN/jfuXEMzMg3kAlNmPP0kz239eYVlGQHo50
 !
 transceiver qsfp default-mode 4x10G
 !
-service routing protocols model ribd
+service routing protocols model multi-agent
 !
 no logging console
 !
@@ -129,12 +146,17 @@ interface Loopback0
 !
 interface Management1
    vrf management
-   ip address 192.168.254.56/24
+   ip address 192.168.254.61/24
 !
 ip routing
 no ip routing vrf management
 !
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+!
 ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map REDISTRIBUTE_CONNECTED permit 10
+   match ip address prefix-list REDISTRIBUTE_CONNECTED
 !
 peer-filter AS_FILTER
    10 match as-range 65001-65999 result accept
@@ -143,10 +165,24 @@ router bgp 65000
    router-id 10.8.0.1
    timers bgp 1 3
    maximum-paths 128
-   bgp listen range 10.10.0.0/22 peer-group LEAFS peer-filter 65001-65999
-   neighbor LEAFS peer group
-   neighbor LEAFS bfd
-   neighbor LEAFS password 7 qcZqPZg4u36aJMQlNFmhpQ==
+   bgp listen range 10.8.0.0/24 peer-group LEAF_OVERLAY peer-filter 65001-65999
+   bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY peer-filter 65001-65999
+   neighbor LEAF_OVERLAY peer group
+   neighbor LEAF_OVERLAY update-source Loopback0
+   neighbor LEAF_OVERLAY ebgp-multihop
+   neighbor LEAF_OVERLAY password 7 knxssjklOKRtJkTNdlNFCw==
+   neighbor LEAF_OVERLAY send-community
+   neighbor LEAF_UNDERLAY peer group
+   neighbor LEAF_UNDERLAY bfd
+   neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ==
+   neighbor SPINE_OVERLAY peer group
+   redistribute connected route-map REDISTRIBUTE_CONNECTED
+   !
+   address-family evpn
+      neighbor LEAF_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
 !
 end========================================leaf1#! Command: show running-config
 ! device: leaf1 (vEOS-lab, EOS-4.29.2F)
@@ -155,18 +191,26 @@ end========================================leaf1#! Command: show running-config
 !
 no aaa root
 !
-username admin privilege 15 role network-admin secret sha512 $6$YfDRREzYI4S6jyO8$OTJqIGZNyKgIf/aWvLBccRIycNSP.h7x9JS9qpilKkyRonUGMd3n2u.PiJa8w2LK8ckz.tCHGGBcYnTJgczi9.
-username cisco_automate privilege 15 secret sha512 $6$LM/UuMgYQz1XD/dz$5haHgUZitrPRPTHksWCX9fnvHzGZbb6qzpmFd7ASxr1EM4pzycPn6.ZjUnZ9PPATM9BdhpoFAlWjGSztnWs631
+username admin privilege 15 role network-admin secret sha512 $6$EQeHE.xhO4JA1Zf6$GSKgNzkXbz6CIhjuKCIdGpLTnPhKWYHi0C0r57g4x49qcYmS1lp4UdGMto2lmn53uYiV1P3..PNSnrVhu4a8E1
+username cisco_automate privilege 15 secret sha512 $6$gPhCe7irPmnOgy70$voSFRfER2ZzpLIjj5eUdv539txe5cg5FU1/QYoB/.4JQsZ29/tDCESPjZs/AueFHw/YeFLGb0XcLCdyY.8j00/
 !
 transceiver qsfp default-mode 4x10G
 !
-service routing protocols model ribd
+service routing protocols model multi-agent
 !
 no logging console
 !
 hostname leaf1
 !
 spanning-tree mode mstp
+!
+vlan 20-30
+!
+vrf instance SERVICE_1
+!
+vrf instance SERVICE_2
+!
+vrf instance SERVICE_3
 !
 vrf instance management
 !
@@ -183,10 +227,13 @@ interface Ethernet2
    bfd echo
 !
 interface Ethernet3
+   switchport access vlan 21
 !
 interface Ethernet4
+   switchport access vlan 22
 !
 interface Ethernet5
+   switchport access vlan 23
 !
 interface Ethernet6
 !
@@ -194,36 +241,107 @@ interface Ethernet7
 !
 interface Ethernet8
 !
-interface Ethernet9
-!
 interface Loopback0
    ip address 10.8.0.2/32
 !
+interface Loopback1
+   ip address 10.9.0.2/32
+!
 interface Management1
    vrf management
-   ip address 192.168.254.57/24
+   ip address 192.168.254.62/24
+!
+interface Vlan21
+   vrf SERVICE_1
+   ip address virtual 10.11.1.254/24
+!
+interface Vlan22
+   vrf SERVICE_2
+   ip address virtual 10.11.2.254/24
+!
+interface Vlan23
+   vrf SERVICE_3
+   ip address virtual 10.11.3.254/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 20-30 vni 10020-10030
+   vxlan vrf SERVICE_1 vni 1
+   vxlan vrf SERVICE_2 vni 2
+   vxlan vrf SERVICE_3 vni 3
+!
+ip virtual-router mac-address 00:00:22:22:33:33
 !
 ip routing
+ip routing vrf SERVICE_1
+ip routing vrf SERVICE_2
+ip routing vrf SERVICE_3
 no ip routing vrf management
+!
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
 !
 ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
 !
 route-map REDISTRIBUTE_CONNECTED permit 10
-   match interface Loopback0
-!
-peer-filter AS_FILTER
+   match ip address prefix-list REDISTRIBUTE_CONNECTED
 !
 router bgp 65001
    router-id 10.8.0.2
    timers bgp 1 3
    maximum-paths 128
-   neighbor SPINES peer group
-   neighbor SPINES remote-as 65000
-   neighbor SPINES bfd
-   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
-   neighbor 10.10.1.1 peer group SPINES
-   neighbor 10.10.2.1 peer group SPINES
+   neighbor SPINE_OVERLAY peer group
+   neighbor SPINE_OVERLAY remote-as 65000
+   neighbor SPINE_OVERLAY update-source Loopback0
+   neighbor SPINE_OVERLAY ebgp-multihop 2
+   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
+   neighbor SPINE_OVERLAY send-community
+   neighbor SPINE_UNDERLAY peer group
+   neighbor SPINE_UNDERLAY remote-as 65000
+   neighbor SPINE_UNDERLAY bfd
+   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
+   neighbor 10.8.0.0 peer group SPINE_OVERLAY
+   neighbor 10.8.0.1 peer group SPINE_OVERLAY
+   neighbor 10.10.1.1 peer group SPINE_UNDERLAY
+   neighbor 10.10.2.1 peer group SPINE_UNDERLAY
    redistribute connected route-map REDISTRIBUTE_CONNECTED
+   !
+   vlan 21
+      rd 10.8.0.2:10021
+      route-target both 1:10021
+      redistribute learned
+   !
+   vlan 22
+      rd 10.8.0.2:10022
+      route-target both 1:10022
+      redistribute learned
+   !
+   vlan 23
+      rd 10.8.0.2:10023
+      route-target both 1:10023
+      redistribute learned
+   !
+   address-family evpn
+      neighbor SPINE_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
+   !
+   vrf SERVICE_1
+      rd 10.8.0.2:1
+      route-target import evpn 1:1
+      route-target export evpn 1:1
+   !
+   vrf SERVICE_2
+      rd 10.8.0.2:2
+      route-target import evpn 1:2
+      route-target export evpn 1:2
+   !
+   vrf SERVICE_3
+      rd 10.8.0.2:3
+      route-target import evpn 1:3
+      route-target export evpn 1:3
 !
 end========================================leaf2#! Command: show running-config
 ! device: leaf2 (vEOS-lab, EOS-4.29.2F)
@@ -232,18 +350,26 @@ end========================================leaf2#! Command: show running-config
 !
 no aaa root
 !
-username admin privilege 15 role network-admin secret sha512 $6$IzTwkTFsy6OQ8/so$hucB.CtEcXuFhzouX/yK31z.kEJsJARBjbovk.8WE7u9CF4qYqnpBs1BeSisUzkmuzTtusBhzny8zuzku5lfh1
-username cisco_automate privilege 15 secret sha512 $6$KfQPKFi6kUC01xBI$q8pzkj.qcJVpFKp/gAn3jTYlJjdQyxal5vAVPGsKrNB3v5SqrZ8D8fTgDomxOXATPzmpEM8iG0P9Uwos/ktJH/
+username admin privilege 15 role network-admin secret sha512 $6$HC4X7RBScJQEEIhU$OtbQPXvPAf5Agj.uCLmFz8QzFxfYSs6vsj2UcbjwEQuL9tIu8mdnint1yIzAfE55OuFLLUDgPwj9bqwIuzd7A.
+username cisco_automate privilege 15 secret sha512 $6$Uwp0UfiMrgKU.Yr/$P88LLWSNq9bxIeBwerEikZWzf5pzF4nOXo.hrHePsXn3EOYbcFqTN6MtRVEq83BUHIF5zgdG3PWqZq/2uJmk..
 !
 transceiver qsfp default-mode 4x10G
 !
-service routing protocols model ribd
+service routing protocols model multi-agent
 !
 no logging console
 !
 hostname leaf2
 !
 spanning-tree mode mstp
+!
+vlan 20-30
+!
+vrf instance SERVICE_1
+!
+vrf instance SERVICE_2
+!
+vrf instance SERVICE_3
 !
 vrf instance management
 !
@@ -260,12 +386,16 @@ interface Ethernet2
    bfd echo
 !
 interface Ethernet3
+   switchport access vlan 21
 !
 interface Ethernet4
+   switchport access vlan 22
 !
 interface Ethernet5
+   switchport access vlan 23
 !
 interface Ethernet6
+   switchport access vlan 24
 !
 interface Ethernet7
 !
@@ -274,65 +404,144 @@ interface Ethernet8
 interface Loopback0
    ip address 10.8.0.3/32
 !
+interface Loopback1
+   ip address 10.9.0.3/32
+!
 interface Management1
    vrf management
-   ip address 192.168.254.58/24
+   ip address 192.168.254.63/24
+!
+interface Vlan21
+   vrf SERVICE_1
+   ip address virtual 10.11.1.254/24
+!
+interface Vlan22
+   vrf SERVICE_2
+   ip address virtual 10.11.2.254/24
+!
+interface Vlan23
+   vrf SERVICE_3
+   ip address virtual 10.11.3.254/24
+!
+interface Vlan24
+   vrf SERVICE_3
+   ip address virtual 10.11.4.254/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 20-30 vni 1020-1030
+   vxlan vrf SERVICE_1 vni 1
+   vxlan vrf SERVICE_2 vni 2
+   vxlan vrf SERVICE_3 vni 3
+!
+ip virtual-router mac-address 00:00:22:22:33:33
 !
 ip routing
+ip routing vrf SERVICE_1
+ip routing vrf SERVICE_2
+ip routing vrf SERVICE_3
 no ip routing vrf management
+!
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
 !
 ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
 !
 route-map REDISTRIBUTE_CONNECTED permit 10
-   match interface Loopback0
-!
-peer-filter AS_FILTER
+   match ip address prefix-list REDISTRIBUTE_CONNECTED
 !
 router bgp 65002
    router-id 10.8.0.3
    timers bgp 1 3
    maximum-paths 128
-   neighbor SPINES peer group
-   neighbor SPINES remote-as 65000
-   neighbor SPINES bfd
-   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
-   neighbor 10.10.1.3 peer group SPINES
-   neighbor 10.10.2.3 peer group SPINES
+   neighbor SPINE_OVERLAY peer group
+   neighbor SPINE_OVERLAY remote-as 65000
+   neighbor SPINE_OVERLAY update-source Loopback0
+   neighbor SPINE_OVERLAY ebgp-multihop 2
+   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
+   neighbor SPINE_OVERLAY send-community
+   neighbor SPINE_UNDERLAY peer group
+   neighbor SPINE_UNDERLAY remote-as 65000
+   neighbor SPINE_UNDERLAY bfd
+   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
+   neighbor 10.8.0.0 peer group SPINE_OVERLAY
+   neighbor 10.8.0.1 peer group SPINE_OVERLAY
+   neighbor 10.10.1.3 peer group SPINE_UNDERLAY
+   neighbor 10.10.2.3 peer group SPINE_UNDERLAY
    redistribute connected route-map REDISTRIBUTE_CONNECTED
+   !
+   vlan 21
+      rd 10.8.0.3:10021
+      route-target both 1:10021
+      redistribute learned
+   !
+   vlan 22
+      rd 10.8.0.3:10022
+      route-target both 1:10022
+      redistribute learned
+   !
+   vlan 23
+      rd 10.8.0.3:10023
+      route-target both 1:10023
+      redistribute learned
+   !
+   address-family evpn
+      neighbor SPINE_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
+   !
+   vrf SERVICE_1
+      rd 10.8.0.3:1
+      route-target import evpn 1:1
+      route-target export evpn 1:1
+   !
+   vrf SERVICE_2
+      rd 10.8.0.3:2
+      route-target import evpn 1:2
+      route-target export evpn 1:2
+   !
+   vrf SERVICE_3
+      rd 10.8.0.3:3
+      route-target import evpn 1:3
+      route-target export evpn 1:3
 !
-end========================================leaf3#! Command: show running-config
-! device: leaf3 (vEOS-lab, EOS-4.29.2F)
+end========================================fw1#! Command: show running-config
+! device: fw1 (vEOS-lab, EOS-4.29.2F)
 !
 ! boot system flash:/vEOS-lab.swi
 !
 no aaa root
 !
-username admin privilege 15 role network-admin secret sha512 $6$Dz/2ECURqgbNowny$cxGjsS.MknG27Lb/qQ9ucVLPl446PCnc4UUjq1FhPMbSWgW09WBw9BEpSP9uQnf3ZzGXTHFAPWYHS8kIMWxHk1
-username cisco_automate privilege 15 secret sha512 $6$3X14vtNiFKkowp8t$FfeDct3NdXHgGhJEZeJ7VHqLa.wtc.yZMzyINcyZVYUw6abfWufQupxmVdGi33YFBRBtcR9./9cYCpLVNyfnM0
+username cisco_automate privilege 15 secret sha512 $6$.I471LKS6iq6690K$YXT/PWmpN3XyqtvUKoiP5cyqkVFgQHAr8ITGHEe.LckxecTDB9i9NYiOd2VPVcn7kikKLhU2bzs1xx3CuqHGv0
 !
 transceiver qsfp default-mode 4x10G
 !
 service routing protocols model ribd
 !
-no logging console
-!
-hostname leaf3
+hostname fw1
 !
 spanning-tree mode mstp
 !
 vrf instance management
 !
 interface Ethernet1
-   mtu 9214
    no switchport
-   ip address 10.10.1.4/31
-   bfd echo
+!
+interface Ethernet1.1
+   encapsulation dot1q vlan 1
+   ip address 10.10.1.7/31
+!
+interface Ethernet1.2
+   encapsulation dot1q vlan 2
+   ip address 10.10.1.9/31
+!
+interface Ethernet1.3
+   encapsulation dot1q vlan 3
+   ip address 10.10.1.11/31
 !
 interface Ethernet2
-   mtu 9214
-   no switchport
-   ip address 10.10.2.4/31
-   bfd echo
 !
 interface Ethernet3
 !
@@ -347,32 +556,115 @@ interface Ethernet7
 interface Ethernet8
 !
 interface Loopback0
-   ip address 10.8.0.4/32
+   ip address 10.0.0.4/32
+!
+interface Loopback1
+   ip address 8.8.8.8/32
 !
 interface Management1
    vrf management
-   ip address 192.168.254.59/24
+   ip address 192.168.254.65/24
 !
 ip routing
 no ip routing vrf management
 !
+ip prefix-list PRIVATE seq 10 permit 10.0.0.0/8 le 32
+ip prefix-list PRIVATE seq 20 permit 192.168.0.0/16 le 32
+ip prefix-list PRIVATE seq 30 permit 172.16.0.0/12 le 32
+!
 ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
 !
-route-map REDISTRIBUTE_CONNECTED permit 10
-   match interface Loopback0
+route-map INTERNET deny 10
+   match ip address prefix-list PRIVATE
 !
-peer-filter AS_FILTER
+route-map INTERNET permit 20
 !
-router bgp 65003
-   router-id 10.8.0.4
-   timers bgp 1 3
-   maximum-paths 128
-   neighbor SPINES peer group
-   neighbor SPINES remote-as 65000
-   neighbor SPINES bfd
-   neighbor SPINES password 7 jHZ88O3chwnpmpxrF1e8qQ==
-   neighbor 10.10.1.5 peer group SPINES
-   neighbor 10.10.2.5 peer group SPINES
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
+router bgp 65004
+   router-id 10.0.0.4
+   neighbor 10.10.1.6 remote-as 65003
+   neighbor 10.10.1.8 remote-as 65003
+   neighbor 10.10.1.10 remote-as 65003
+   aggregate-address 8.0.0.0/8 summary-only
+   redistribute connected route-map INTERNET
+!
+end========================================fw1#! Command: show running-config
+! device: fw1 (vEOS-lab, EOS-4.29.2F)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+username cisco_automate privilege 15 secret sha512 $6$.I471LKS6iq6690K$YXT/PWmpN3XyqtvUKoiP5cyqkVFgQHAr8ITGHEe.LckxecTDB9i9NYiOd2VPVcn7kikKLhU2bzs1xx3CuqHGv0
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model ribd
+!
+hostname fw1
+!
+spanning-tree mode mstp
+!
+vrf instance management
+!
+interface Ethernet1
+   no switchport
+!
+interface Ethernet1.1
+   encapsulation dot1q vlan 1
+   ip address 10.10.1.7/31
+!
+interface Ethernet1.2
+   encapsulation dot1q vlan 2
+   ip address 10.10.1.9/31
+!
+interface Ethernet1.3
+   encapsulation dot1q vlan 3
+   ip address 10.10.1.11/31
+!
+interface Ethernet2
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.0.0.4/32
+!
+interface Loopback1
+   ip address 8.8.8.8/32
+!
+interface Management1
+   vrf management
+   ip address 192.168.254.65/24
+!
+ip routing
+no ip routing vrf management
+!
+ip prefix-list PRIVATE seq 10 permit 10.0.0.0/8 le 32
+ip prefix-list PRIVATE seq 20 permit 192.168.0.0/16 le 32
+ip prefix-list PRIVATE seq 30 permit 172.16.0.0/12 le 32
+!
+ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
+!
+route-map INTERNET deny 10
+   match ip address prefix-list PRIVATE
+!
+route-map INTERNET permit 20
+!
+router bgp 65004
+   router-id 10.0.0.4
+   neighbor 10.10.1.6 remote-as 65003
+   neighbor 10.10.1.8 remote-as 65003
+   neighbor 10.10.1.10 remote-as 65003
+   aggregate-address 8.0.0.0/8 summary-only
+   redistribute connected route-map INTERNET
 !
 end========================================

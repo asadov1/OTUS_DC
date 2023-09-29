@@ -37,7 +37,7 @@ def send_config_commands(device, config_commands, save_conf=True):
     except (NetmikoBaseException, SSHException) as error:
         print(f"Failed to execute command due to error: {error}")
 
-def send_config_commands_to_devices(devices, config_commands, save_conf=False, limit=10):
+def send_config_commands_to_devices(devices, config_commands, save_conf=True, limit=10):
     with ThreadPoolExecutor(max_workers=limit) as executor:
         futures = []
         for device, command in zip(devices, config_commands):
@@ -54,9 +54,9 @@ def send_config_commands_to_devices(devices, config_commands, save_conf=False, l
     return results
 
 if __name__ == '__main__':
-    template_file = "templates/eos/run_conf.j2"
-    conf_params = yaml_load("data_files/conf_eos.yml")
-    conn_params = yaml_load("data_files/devices_eos.yml")
+    template_file = "templates/nxos/run_conf_nxos.j2"
+    conf_params = yaml_load("data_files/conf_nxos.yml")
+    conn_params = yaml_load("data_files/devices_nxos.yml")
 
     devices_configs = []
     for device in conn_params:

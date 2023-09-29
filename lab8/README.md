@@ -1,8 +1,8 @@
-# ДЗ №7
+# ДЗ №8
 
 ### Цели:
 
-- Реализовать передачу суммарных префиксов через EVPN route-type 5
+- Настроить отказоустойчивое подключение клиентов с использованием VPC
 
 **План IP адресации**
 
@@ -45,14 +45,21 @@
 | :---------: | :--: | :---: | :----------: |
 |  Service_1  |  21  | 10021 | 10.11.1.0/24 |
 |  Service_2  |  22  | 10022 | 10.11.2.0/24 |
-|  Service_3  |  23  | 10023 | 10.11.3.0/24 |
-|  Service_4  |  24  | 10024 | 10.11.4.0/24 |
 
-**Топология EVE arista :**
+**Топология EVE :**
 
-<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab7/bgp_evpn_l2_with_FW.png" style="zoom:200%;" />
+<img src="https://raw.githubusercontent.com/asadov1/OTUS_DC/master/lab8/lab_8_topology_vpc.png" style="zoom:200%;" />
 
-### Примененные конфигурации EOS для настройки ebgp c Vlan Based Service и L3 Asymmetric IRB:
+_**Выполненые действия по конфигурированию :**_
+
+- _настроены Underlay и Overlay. Маршуритизация в обоих случаях iBGP_
+- _настроены L2 и L3 VNI_
+- _на leaf1 и leaf2 сделаны консистентные настройки для работы vpc_
+- для эмуляции клиентского оборудования добавлен еще один Cisco Nexus (CE) и настроен port-channel 100
+
+
+
+### Примененные конфигурации:
 
 _**Пример конфигурации интерфейса spine/leaf :**_
 
@@ -68,1018 +75,693 @@ interface Loopback0
 
 ```
 
-**spine1/2 (_конфигурации полностью идентичны_):**
+**spine1:**
 
 ```
-service routing protocols model multi-agent 
+nv overlay evpn
+feature ospf
+feature bgp
+feature isis
+feature vn-segment-vlan-based
+feature bfd
+feature nv overlay
 
-ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
+vlan 1
 
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.0.0.0/24 le 32
 route-map REDISTRIBUTE_CONNECTED permit 10
-   match ip address prefix-list REDISTRIBUTE_CONNECTED
-   
-peer-filter AS_FILTER
-   10 match as-range 65001-65999 result accept
+  match ip address prefix-list REDISTRIBUTE_CONNECTED
+vrf context management
+  ip route 0.0.0.0/0 mgmt0 192.168.254.1
 
+interface Ethernet1/1
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.1.1/31
+  no shutdown
+
+interface Ethernet1/2
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.1.3/31
+  no shutdown
+
+interface Ethernet1/3
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.1.5/31
+  no shutdown
+
+interface mgmt0
+  vrf member management
+  ip address 192.168.254.50/24
+
+interface loopback0
+  ip address 10.0.0.0/32
+icam monitor scale
+
+cli alias name wr copy run start
+line console
+line vty
 router bgp 65000
-   router-id 10.8.0.0
-   timers bgp 1 3
-   maximum-paths 128
-   bgp listen range 10.8.0.0/24 peer-group LEAF_OVERLAY peer-filter 65001-65999
-   bgp listen range 10.10.0.0/22 peer-group LEAF_UNDERLAY peer-filter 65001-65999
-   neighbor LEAF_OVERLAY peer group
-   neighbor LEAF_OVERLAY update-source Loopback0
-   neighbor LEAF_OVERLAY ebgp-multihop 2
-   neighbor LEAF_OVERLAY send-community
-   neighbor LEAF_UNDERLAY peer group
-   neighbor LEAF_UNDERLAY bfd
-   neighbor LEAF_UNDERLAY password 7 F0ycgLa3E/blyskQ/za9aQ==
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
-   !
-   address-family evpn
-      neighbor LEAF_OVERLAY activate
+  router-id 10.0.0.0
+  reconnect-interval 12
+  address-family ipv4 unicast
+    redistribute direct route-map REDISTRIBUTE_CONNECTED
+    maximum-paths ibgp 64
+  address-family l2vpn evpn
+    maximum-paths ibgp 64
+    retain route-target all
+  template peer LEAF_OVERLAY
+    remote-as 65000
+    update-source loopback0
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+      route-reflector-client
+  neighbor 10.0.0.2
+    inherit peer LEAF_OVERLAY
+  neighbor 10.0.0.3
+    inherit peer LEAF_OVERLAY
+  neighbor 10.2.0.0/22
+    remote-as 65000
+    password 3 9125d59c18a9b015
+    timers 3 9
+    maximum-peers 10
+    address-family ipv4 unicast
+      route-reflector-client
+      next-hop-self all
 ```
 
-_**leaf1 (применены vlan 21-24, для разнообразия в vrf SERVICE_2 упаковал vlan 23 и 24**:_
+```
+```
+
+
+
+_**leaf1**:_
 
 ```
-! Command: show running-config
-! device: leaf1 (vEOS-lab, EOS-4.29.2F)
-!
-! boot system flash:/vEOS-lab.swi
-!
-no aaa root
-!
-username admin privilege 15 role network-admin secret sha512 $6$o5Z1pkhWx5uchk2k$GV7EqcNzDThaT66sWShqcItDHj5nfiGcSktOo8AhQaNGbqV8zmdHM3JulLBdJ4zQirHCB9pMQ09UsI1FEg82b.
-username cisco_automate privilege 15 secret sha512 $6$CLdhWrq3g.EW/BdZ$EXRT9nYJd6sW9ko5Yu58cJ4BepCwYt1IZT86nPs1YmZG/wnZdQctuerC0hyA3KPIgSSE4txqmnVEGo36T0hDv.
-!
-transceiver qsfp default-mode 4x10G
-!
-service routing protocols model multi-agent
-!
-no logging console
-!
-hostname leaf1
-!
-spanning-tree mode mstp
-!
-vlan 20-30
-!
-vrf instance SERVICE
-!
-vrf instance SERVICE_1
-!
-vrf instance SERVICE_2
-!
-vrf instance management
-!
-interface Ethernet1
-   mtu 9214
-   no switchport
-   ip address 10.10.1.0/31
-   bfd echo
-!
-interface Ethernet2
-   mtu 9214
-   no switchport
-   ip address 10.10.2.0/31
-   bfd echo
-!
-interface Ethernet3
-   switchport access vlan 21
-!
-interface Ethernet4
-   switchport access vlan 22
-!
-interface Ethernet5
-   switchport access vlan 23
-!
-interface Ethernet6
-!
-interface Ethernet7
-!
-interface Ethernet8
-!
-interface Loopback0
-   ip address 10.8.0.2/32
-!
-interface Loopback1
-   ip address 10.9.0.2/32
-!
-interface Management1
-   vrf management
-   ip address 192.168.254.57/24
-!
-interface Vlan21
-   vrf SERVICE
-   ip address virtual 10.11.1.254/24
-!
-interface Vlan22
-   vrf SERVICE_1
-   ip address virtual 10.11.2.254/24
-!
-interface Vlan23
-   vrf SERVICE_2
-   ip address virtual 10.11.3.254/24
-!
-interface Vlan24
-   vrf SERVICE_2
-   ip address virtual 10.11.4.254/24
-!
-interface Vxlan1
-   vxlan source-interface Loopback1
-   vxlan udp-port 4789
-   vxlan vlan 20-30 vni 10020-10030
-   vxlan vrf SERVICE vni 1
-   vxlan vrf SERVICE_1 vni 2
-   vxlan vrf SERVICE_2 vni 3
-!
-ip virtual-router mac-address 00:00:22:22:33:33
-!
-ip routing
-ip routing vrf SERVICE
-ip routing vrf SERVICE_1
-ip routing vrf SERVICE_2
-no ip routing vrf management
-!
-ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
-ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
-!
-ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
-!
+nv overlay evpn
+feature ospf
+feature bgp
+feature isis
+feature interface-vlan
+feature vn-segment-vlan-based
+feature lacp
+feature vpc
+feature lldp
+feature bfd
+feature nv overlay
+
+fabric forwarding anycast-gateway-mac 0000.1111.2222
+vlan 1,21,999
+vlan 21
+  vn-segment 20001
+vlan 999
+  vn-segment 99900
+
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.0.0.0/24 le 32
+ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.1.0.0/24 le 32
 route-map REDISTRIBUTE_CONNECTED permit 10
-   match ip address prefix-list REDISTRIBUTE_CONNECTED
-!
-router bgp 65001
-   router-id 10.8.0.2
-   timers bgp 1 3
-   maximum-paths 128
-   neighbor SPINE_OVERLAY peer group
-   neighbor SPINE_OVERLAY remote-as 65000
-   neighbor SPINE_OVERLAY update-source Loopback0
-   neighbor SPINE_OVERLAY ebgp-multihop 2
-   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
-   neighbor SPINE_OVERLAY send-community
-   neighbor SPINE_UNDERLAY peer group
-   neighbor SPINE_UNDERLAY remote-as 65000
-   neighbor SPINE_UNDERLAY bfd
-   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
-   neighbor 10.8.0.0 peer group SPINE_OVERLAY
-   neighbor 10.8.0.1 peer group SPINE_OVERLAY
-   neighbor 10.10.1.1 peer group SPINE_UNDERLAY
-   neighbor 10.10.2.1 peer group SPINE_UNDERLAY
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
-   !
-   vlan 21
-      rd 10.8.0.2:10021
-      route-target both 1:10021
-      redistribute learned
-   !
-   vlan 22
-      rd 10.8.0.2:10022
-      route-target both 1:10022
-      redistribute learned
-   !
-   vlan 23
-      rd 10.8.0.2:10023
-      route-target both 1:10023
-      redistribute learned
-   !
-   vlan 24
-      rd 10.8.0.2:10024
-      route-target both 1:10024
-      redistribute learned
-   !
-   address-family evpn
-      neighbor SPINE_OVERLAY activate
-   !
-   vrf SERVICE
-      rd 10.8.0.2:1
-      route-target import evpn 1:1
-      route-target export evpn 1:1
-   !
-   vrf SERVICE_1
-      rd 10.8.0.2:2
-      route-target import evpn 1:2
-      route-target export evpn 1:2
-   !
-   vrf SERVICE_2
-      rd 10.8.0.2:3
-      route-target import evpn 1:3
-      route-target export evpn 1:3
-```
+  match ip address prefix-list REDISTRIBUTE_CONNECTED
+vrf context KEEPALIVE
+vrf context PROD
+  vni 99900
+  rd auto
+  address-family ipv4 unicast
+    route-target both auto
+    route-target both auto evpn
+vrf context management
+  ip route 0.0.0.0/0 mgmt0 192.168.254.1
+vpc domain 10
+  peer-switch
+  role priority 20
+  peer-keepalive destination 192.168.0.2 source 192.168.0.1 vrf KEEPALIVE
+  delay restore 10
+  peer-gateway
+  ip arp synchronize
 
-_**leaf2 (применены vlan 21-24, для разнообразия в vrf SERVICE_2 упаковал vlan 23 и 24**:_
 
-```
-! Command: show running-config
-! device: leaf2 (vEOS-lab, EOS-4.29.2F)
-!
-! boot system flash:/vEOS-lab.swi
-!
-no aaa root
-!
-username admin privilege 15 role network-admin secret sha512 $6$GjhdgzF0oU2.u1LC$TgWfg5bT8BfdSd0Mdccm1tm.ikLCUNt6Bgkz3gFCX0zh6/aPM8TMRJxYkofgSu53vakhLHY4nq9ebDY2GAjci.
-username cisco_automate privilege 15 secret sha512 $6$BSPZYqlrfL0kAF6K$UbhgimAJoQL9ZK.hB3jP.x0t/B9Tgd3kFmnkpWbTe3NAooDAkGbkhfL7RslNTTfH.fj9NBZGDTjlDmz4nQFLu/
-!
-transceiver qsfp default-mode 4x10G
-!
-service routing protocols model multi-agent
-!
-no logging console
-!
-hostname leaf2
-!
-spanning-tree mode mstp
-!
-vlan 20-30
-!
-vrf instance SERVICE
-!
-vrf instance SERVICE_1
-!
-vrf instance SERVICE_2
-!
-vrf instance management
-!
-interface Ethernet1
-   mtu 9214
-   no switchport
-   ip address 10.10.1.2/31
-   bfd echo
-!
-interface Ethernet2
-   mtu 9214
-   no switchport
-   ip address 10.10.2.2/31
-   bfd echo
-!
-interface Ethernet3
-   switchport access vlan 21
-!
-interface Ethernet4
-   switchport access vlan 22
-!
-interface Ethernet5
-   switchport access vlan 23
-!
-interface Ethernet6
-   switchport access vlan 24
-!
-interface Ethernet7
-!
-interface Ethernet8
-!
-interface Ethernet9
-!
-interface Ethernet10
-!
-interface Loopback0
-   ip address 10.8.0.3/32
-!
-interface Loopback1
-   ip address 10.9.0.3/32
-!
-interface Management1
-   vrf management
-   ip address 192.168.254.58/24
-!
-interface Vlan21
-   vrf SERVICE
-   ip address virtual 10.11.1.254/24
-!
-interface Vlan22
-   vrf SERVICE_1
-   ip address virtual 10.11.2.254/24
-!
-interface Vlan23
-   vrf SERVICE_2
-   ip address virtual 10.11.3.254/24
-!
-interface Vlan24
-   vrf SERVICE_2
-   ip address virtual 10.11.4.254/24
-!
-interface Vxlan1
-   vxlan source-interface Loopback1
-   vxlan udp-port 4789
-   vxlan vlan 20-30 vni 10020-10030
-   vxlan vrf SERVICE vni 1
-   vxlan vrf SERVICE_1 vni 2
-   vxlan vrf SERVICE_2 vni 3
-!
-ip virtual-router mac-address 00:00:22:22:33:33
-!
-ip routing
-ip routing vrf SERVICE
-ip routing vrf SERVICE_1
-ip routing vrf SERVICE_2
-no ip routing vrf management
-!
-ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
-ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
-!
-ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
-!
-route-map REDISTRIBUTE_CONNECTED permit 10
-   match ip address prefix-list REDISTRIBUTE_CONNECTED
-!
-router bgp 65002
-   router-id 10.8.0.3
-   timers bgp 1 3
-   maximum-paths 128
-   neighbor SPINE_OVERLAY peer group
-   neighbor SPINE_OVERLAY remote-as 65000
-   neighbor SPINE_OVERLAY update-source Loopback0
-   neighbor SPINE_OVERLAY ebgp-multihop 2
-   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
-   neighbor SPINE_OVERLAY send-community
-   neighbor SPINE_UNDERLAY peer group
-   neighbor SPINE_UNDERLAY remote-as 65000
-   neighbor SPINE_UNDERLAY bfd
-   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
-   neighbor 10.8.0.0 peer group SPINE_OVERLAY
-   neighbor 10.8.0.1 peer group SPINE_OVERLAY
-   neighbor 10.10.1.3 peer group SPINE_UNDERLAY
-   neighbor 10.10.2.3 peer group SPINE_UNDERLAY
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
-   !
-   vlan 21
-      rd 10.8.0.3:10021
-      route-target both 1:10021
-      redistribute learned
-   !
-   vlan 22
-      rd 10.8.0.3:10022
-      route-target both 1:10022
-      redistribute learned
-   !
-   vlan 23
-      rd 10.8.0.3:10023
-      route-target both 1:10023
-      redistribute learned
-   !
-   vlan 24
-      rd 10.8.0.3:10024
-      route-target both 1:10024
-      redistribute learned
-   !
-   address-family evpn
-      neighbor SPINE_OVERLAY activate
-   !
-   vrf SERVICE
-      rd 10.8.0.3:1
-      route-target import evpn 1:1
-      route-target export evpn 1:1
-   !
-   vrf SERVICE_1
-      rd 10.8.0.3:2
-      route-target import evpn 1:2
-      route-target export evpn 1:2
-   !
-   vrf SERVICE_2
-      rd 10.8.0.3:3
-      route-target import evpn 1:3
-      route-target export evpn 1:3
-!
-end
-
-ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
-ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
-
-vrf instance SERVICE
-ip routing
-ip routing vrf SERVICE
-no ip routing vrf management
-
-ip virtual-router mac-address 00:00:22:22:33:33
-
-route-map REDISTRIBUTE_CONNECTED permit 10
-   match ip address prefix-list REDISTRIBUTE_CONNECTED
-
-router bgp 65002
-   router-id 10.8.0.3
-   timers bgp 1 3
-   maximum-paths 128
-   neighbor SPINE_OVERLAY peer group
-   neighbor SPINE_OVERLAY remote-as 65000
-   neighbor SPINE_OVERLAY update-source Loopback0
-   neighbor SPINE_OVERLAY ebgp-multihop 2
-   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
-   neighbor SPINE_OVERLAY send-community
-   neighbor SPINE_UNDERLAY peer group
-   neighbor SPINE_UNDERLAY remote-as 65000
-   neighbor SPINE_UNDERLAY bfd
-   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
-   neighbor 10.8.0.0 peer group SPINE_OVERLAY
-   neighbor 10.8.0.1 peer group SPINE_OVERLAY
-   neighbor 10.10.1.3 peer group SPINE_UNDERLAY
-   neighbor 10.10.2.3 peer group SPINE_UNDERLAY
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
-   !
-   vlan 21
-      rd 10.8.0.3:10021
-      route-target both 1:10021
-      redistribute learned
-   !
-   vlan 22
-      rd 10.8.0.3:10022
-      route-target both 1:10022
-      redistribute learned
-   !
-   vlan 23
-      rd 10.8.0.3:10023
-      route-target both 1:10023
-      redistribute learned
-   !
-   address-family evpn
-      neighbor SPINE_OVERLAY activate
-   !
-   vrf SERVICE
-      rd 10.8.0.3:65000
-      route-target import evpn 1:65000
-      route-target export evpn 1:65000
-
-interface Vxlan1
-   vxlan source-interface Loopback1
-   vxlan udp-port 4789
-   vxlan vlan 20-30 vni 10020-10030
-   vxlan vrf SERVICE vni 65000
+interface Vlan1
+  no ip redirects
+  no ipv6 redirects
 
 interface Vlan21
-   vrf SERVICE
-   ip address virtual 10.11.1.254/24
-!
-interface Vlan22
-   vrf SERVICE
-   ip address virtual 10.11.2.254/24
+  no shutdown
+  vrf member PROD
+  no ip redirects
+  ip address 10.11.1.254/24
+  no ipv6 redirects
+  fabric forwarding mode anycast-gateway
+
+interface Vlan999
+  description Inter VXLAN Routing
+  no shutdown
+  vrf member PROD
+  no ip redirects
+  ip forward
+  no ipv6 redirects
+
+interface port-channel100
+  description CE
+  switchport mode trunk
+  vpc 100
+
+interface port-channel200
+  description Peer-Link Aggregation
+  switchport mode trunk
+  spanning-tree port type network
+  vpc peer-link
+
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback1
+  member vni 20001
+    ingress-replication protocol bgp
+  member vni 99900 associate-vrf
+
+interface Ethernet1/1
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.1.0/31
+  no shutdown
+
+interface Ethernet1/2
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.2.0/31
+  no shutdown
+
+interface Ethernet1/3
+  description CE
+  switchport mode trunk
+  channel-group 100 mode active
+
+interface Ethernet1/4
+  description Peer-Link
+  switchport mode trunk
+  channel-group 200 mode active
+
+interface Ethernet1/5
+  description Peer-Link
+  switchport mode trunk
+  channel-group 200 mode active
+
+interface Ethernet1/6
+  description Peer-Keepalive Port
+  no switchport
+  vrf member KEEPALIVE
+  ip address 192.168.0.1/30
+  no shutdown
+
+interface mgmt0
+  vrf member management
+  ip address 192.168.254.52/24
+
+interface loopback0
+  ip address 10.0.0.2/32
+
+interface loopback1
+  ip address 10.1.0.2/32
+  ip address 10.1.0.100/32 secondary
+icam monitor scale
+
+cli alias name wr copy run start
+line console
+line vty
+router bgp 65000
+  router-id 10.0.0.2
+  bestpath as-path multipath-relax
+  reconnect-interval 12
+  address-family ipv4 unicast
+    redistribute direct route-map REDISTRIBUTE_CONNECTED
+    maximum-paths ibgp 64
+  address-family l2vpn evpn
+    maximum-paths ibgp 64
+    retain route-target all
+  template peer SPINE
+    remote-as 65000
+    password 3 9125d59c18a9b015
+    timers 3 9
+    address-family ipv4 unicast
+  template peer SPINE_OVERLAY
+    remote-as 65000
+    update-source loopback0
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+  neighbor 10.0.0.0
+    inherit peer SPINE_OVERLAY
+  neighbor 10.0.0.1
+    inherit peer SPINE_OVERLAY
+  neighbor 10.2.1.1
+    inherit peer SPINE
+  neighbor 10.2.2.1
+    inherit peer SPINE
+  vrf PROD
+    address-family ipv4 unicast
+evpn
+  vni 20001 l2
+    rd auto
+    route-target import auto
+    route-target export auto
 ```
 
-_**borderlead:**_
+_**leaf2**:_
 
 ```
-! Command: show running-config
-! device: borderleaf (vEOS-lab, EOS-4.29.2F)
-!
-! boot system flash:/vEOS-lab.swi
-!
-no aaa root
-!
-username admin privilege 15 role network-admin secret sha512 $6$uWvB03bnxURuNGlq$051QbRk3WVVdTzaJqI6Z8nHG995IcOtDLfemS27D0iIQHDhu.tS.ljTfRqnR6NmD2QNeQ1pEnoDk/4wlzANri/
-username cisco_automate privilege 15 secret sha512 $6$WhgHXR5BclaJPB53$oQqCApL1B8NTn.uXlikPafhmj9VCdN8avxbj/73Q2cfxt3NwbCCs4wjXcksXzrxxfO4XiP1TkVNxEz1vzL3LM/
-!
-transceiver qsfp default-mode 4x10G
-!
-service routing protocols model multi-agent
-!
-no logging console
-!
-hostname borderleaf
-!
-spanning-tree mode mstp
-!
-vlan 20-30
-!
-vrf instance SERVICE
-!
-vrf instance SERVICE_1
-!
-vrf instance SERVICE_2
-!
-vrf instance management
-!
-interface Ethernet1
-   mtu 9214
-   no switchport
-   ip address 10.10.1.4/31
-   bfd echo
-!
-interface Ethernet2
-   mtu 9214
-   no switchport
-   ip address 10.10.2.4/31
-   bfd echo
-!
-interface Ethernet3
-   no switchport
-!
-interface Ethernet3.1
-   encapsulation dot1q vlan 1
-   vrf SERVICE
-   ip address 10.10.1.6/31
-!
-interface Ethernet3.2
-   encapsulation dot1q vlan 2
-   vrf SERVICE_1
-   ip address 10.10.1.8/31
-!
-interface Ethernet3.3
-   encapsulation dot1q vlan 3
-   vrf SERVICE_2
-   ip address 10.10.1.10/31
-!
-interface Ethernet4
-!
-interface Ethernet5
-!
-interface Ethernet6
-!
-interface Ethernet7
-!
-interface Ethernet8
-!
-interface Loopback0
-   ip address 10.8.0.4/32
-!
-interface Loopback1
-   ip address 10.9.0.4/32
-!
-interface Management1
-   vrf management
-   ip address 192.168.254.59/24
-!
-interface Vlan21
-   vrf SERVICE
-   ip address virtual 10.11.1.254/24
-!
-interface Vlan22
-   vrf SERVICE_1
-   ip address virtual 10.11.2.254/24
-!
-interface Vlan23
-   vrf SERVICE_2
-   ip address virtual 10.11.3.254/24
-!
-interface Vlan24
-   vrf SERVICE_2
-   ip address virtual 10.11.4.254/24
-!
-interface Vxlan1
-   vxlan source-interface Loopback1
-   vxlan udp-port 4789
-   vxlan vlan 20-30 vni 10020-10030
-   vxlan vrf SERVICE vni 1
-   vxlan vrf SERVICE_1 vni 2
-   vxlan vrf SERVICE_2 vni 3
-!
-ip routing
-ip routing vrf SERVICE
-ip routing vrf SERVICE_1
-ip routing vrf SERVICE_2
-no ip routing vrf management
-!
-ip prefix-list PROD seq 10 permit 10.0.0.0/8 le 32
-ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.8.0.0/24 le 32
-ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.9.0.0/24 le 32
-!
-ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
-!
-route-map PROD permit 10
-   match ip address prefix-list PROD
-!
+nv overlay evpn
+feature ospf
+feature bgp
+feature isis
+feature interface-vlan
+feature vn-segment-vlan-based
+feature lacp
+feature vpc
+feature lldp
+feature bfd
+feature nv overlay
+
+fabric forwarding anycast-gateway-mac 0000.1111.2222
+vlan 1,21-22,999
+vlan 21
+  vn-segment 20001
+vlan 22
+  vn-segment 20002
+vlan 999
+  vn-segment 99900
+
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.0.0.0/24 le 32
+ip prefix-list REDISTRIBUTE_CONNECTED seq 20 permit 10.1.0.0/24 le 32
 route-map REDISTRIBUTE_CONNECTED permit 10
-   match ip address prefix-list REDISTRIBUTE_CONNECTED
-!
-router bgp 65003
-   router-id 10.8.0.4
-   timers bgp 1 3
-   maximum-paths 128
-   neighbor SPINE_OVERLAY peer group
-   neighbor SPINE_OVERLAY remote-as 65000
-   neighbor SPINE_OVERLAY update-source Loopback0
-   neighbor SPINE_OVERLAY ebgp-multihop 2
-   neighbor SPINE_OVERLAY password 7 tZv5KErEqd/gwQMx+naEBw==
-   neighbor SPINE_OVERLAY send-community
-   neighbor SPINE_UNDERLAY peer group
-   neighbor SPINE_UNDERLAY remote-as 65000
-   neighbor SPINE_UNDERLAY bfd
-   neighbor SPINE_UNDERLAY password 7 fCn3158XaWdTuDgXDrM89g==
-   neighbor 10.8.0.0 peer group SPINE_OVERLAY
-   neighbor 10.8.0.1 peer group SPINE_OVERLAY
-   neighbor 10.10.1.5 peer group SPINE_UNDERLAY
-   neighbor 10.10.2.5 peer group SPINE_UNDERLAY
-   redistribute connected route-map REDISTRIBUTE_CONNECTED
-   !
-   vlan 21
-      rd 10.8.0.4:10021
-      route-target both 1:10021
-      redistribute learned
-   !
-   vlan 22
-      rd 10.8.0.4:10022
-      route-target both 1:10022
-      redistribute learned
-   !
-   vlan 23
-      rd 10.8.0.4:10023
-      route-target both 1:10023
-      redistribute learned
-   !
-   vlan 24
-      rd 10.8.0.4:10024
-      route-target both 1:10024
-      redistribute learned
-   !
-   address-family evpn
-      neighbor SPINE_OVERLAY activate
-   !
-   vrf SERVICE
-      rd 10.8.0.4:1
-      route-target import evpn 1:1
-      route-target export evpn 1:1
-      neighbor 10.10.1.7 remote-as 4259905000
-      neighbor 10.10.1.7 local-as 4259840001 no-prepend replace-as
-      redistribute connected route-map PROD
-   !
-   vrf SERVICE_1
-      rd 10.8.0.4:2
-      route-target import evpn 1:2
-      route-target export evpn 1:2
-      neighbor 10.10.1.9 remote-as 4259905000
-      neighbor 10.10.1.9 local-as 4259840002 no-prepend replace-as
-      redistribute connected route-map PROD
-   !
-   vrf SERVICE_2
-      rd 10.8.0.4:3
-      route-target import evpn 1:3
-      route-target export evpn 1:3
-      neighbor 10.10.1.11 remote-as 4259905000
-      neighbor 10.10.1.11 local-as 4259840003 no-prepend replace-as
-      redistribute connected route-map PROD
-!
-end
+  match ip address prefix-list REDISTRIBUTE_CONNECTED
+vrf context KEEPALIVE
+vrf context PROD
+  vni 99900
+  rd auto
+  address-family ipv4 unicast
+    route-target both auto
+    route-target both auto evpn
+vrf context management
+  ip route 0.0.0.0/0 mgmt0 192.168.254.1
+vpc domain 10
+  peer-switch
+  role priority 30
+  peer-keepalive destination 192.168.0.1 source 192.168.0.2 vrf KEEPALIVE
+  delay restore 10
+  peer-gateway
+  ip arp synchronize
+
+
+interface Vlan1
+  no ip redirects
+  no ipv6 redirects
+
+interface Vlan21
+  no shutdown
+  vrf member PROD
+  no ip redirects
+  ip address 10.11.1.254/24
+  no ipv6 redirects
+  fabric forwarding mode anycast-gateway
+
+interface Vlan22
+  no shutdown
+  vrf member PROD
+  no ip redirects
+  ip address 10.11.2.254/24
+  no ipv6 redirects
+  fabric forwarding mode anycast-gateway
+
+interface Vlan999
+  description Inter VXLAN Routing
+  no shutdown
+  vrf member PROD
+  no ip redirects
+  ip forward
+  no ipv6 redirects
+
+interface port-channel100
+  description CE
+  switchport mode trunk
+  vpc 100
+
+interface port-channel200
+  description Peer-Link Aggregation
+  switchport mode trunk
+  spanning-tree port type network
+  vpc peer-link
+
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback1
+  member vni 20001
+    ingress-replication protocol bgp
+  member vni 20002
+    ingress-replication protocol bgp
+  member vni 99900 associate-vrf
+
+interface Ethernet1/1
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.1.2/31
+  no shutdown
+
+interface Ethernet1/2
+  no switchport
+  mtu 9216
+  medium p2p
+  ip address 10.2.2.2/31
+  no shutdown
+
+interface Ethernet1/3
+  switchport access vlan 22
+
+interface Ethernet1/4
+  description Peer-Link
+  switchport mode trunk
+  channel-group 200 mode active
+
+interface Ethernet1/5
+  description Peer-Link
+  switchport mode trunk
+  channel-group 200 mode active
+
+interface Ethernet1/6
+  description Peer-Keepalive Port
+  no switchport
+  vrf member KEEPALIVE
+  ip address 192.168.0.2/30
+  no shutdown
+
+interface Ethernet1/7
+  description CE
+  switchport mode trunk
+  channel-group 100 mode active
+
+interface mgmt0
+  vrf member management
+  ip address 192.168.254.53/24
+
+interface loopback0
+  ip address 10.0.0.3/32
+
+interface loopback1
+  ip address 10.1.0.3/32
+  ip address 10.1.0.100/32 secondary
+icam monitor scale
+
+cli alias name wr copy run start
+line console
+line vty
+router bgp 65000
+  router-id 10.0.0.3
+  bestpath as-path multipath-relax
+  reconnect-interval 12
+  address-family ipv4 unicast
+    redistribute direct route-map REDISTRIBUTE_CONNECTED
+    maximum-paths ibgp 64
+  address-family l2vpn evpn
+    maximum-paths ibgp 64
+    retain route-target all
+  template peer SPINE
+    remote-as 65000
+    password 3 9125d59c18a9b015
+    timers 3 9
+    address-family ipv4 unicast
+  template peer SPINE_OVERLAY
+    remote-as 65000
+    update-source loopback0
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+  neighbor 10.0.0.0
+    inherit peer SPINE_OVERLAY
+  neighbor 10.0.0.1
+    inherit peer SPINE_OVERLAY
+  neighbor 10.2.1.3
+    inherit peer SPINE
+  neighbor 10.2.2.3
+    inherit peer SPINE
+  vrf PROD
+    address-family ipv4 unicast
+evpn
+  vni 20001 l2
+    rd auto
+    route-target import auto
+    route-target export auto
+  vni 20002 l2
+    rd auto
+    route-target import auto
+    route-target export auto
 ```
 
-_**FW1:**_
+_**CE:**_
 
 ```
-fw1#sh run
-! Command: show running-config
-  ! device: fw1 (vEOS-lab, EOS-4.29.2F)
-!
-! boot system flash:/vEOS-lab.swi
-!
-no aaa root
-!
-transceiver qsfp default-mode 4x10G
-!
-service routing protocols model multi-agent
-!
-hostname fw1
-!
-spanning-tree mode mstp
- !
-vrf instance management
-!
-interface Ethernet1
-   no switchport
-!
-interface Ethernet1.1
-   encapsulation dot1q vlan 1
-   ip address 10.10.1.7/31
-!
-interface Ethernet1.2
-   encapsulation dot1q vlan 2
-   ip address 10.10.1.9/31
-!
-interface Ethernet1.3
-   encapsulation dot1q vlan 3
-   ip address 10.10.1.11/31
-!
-interface Ethernet2
-!
-interface Ethernet3
-!
-interface Ethernet4
-!
-interface Ethernet5
-!
-interface Ethernet6
-!
-interface Ethernet7
-!
-interface Ethernet8
-!
-interface Ethernet9
-!
-interface Ethernet10
-!
-interface Loopback0
-   ip address 10.0.0.4/32
-!
-interface Loopback1
-   ip address 8.8.8.8/32
-!
-interface Management1
-   vrf management
-   ip address 192.168.254.65/24
-!
-ip routing
-no ip routing vrf management
-!
-ip prefix-list PRIVATE seq 10 permit 10.0.0.0/8 le 32
-ip prefix-list PRIVATE seq 20 permit 192.168.0.0/16 le 32
-ip prefix-list PRIVATE seq 30 permit 172.16.0.0/12 le 32
-!
-ip route vrf management 0.0.0.0/0 Management1 192.168.254.1
-!
-route-map INTERNET deny 10
-   match ip address prefix-list PRIVATE
-!
-route-map INTERNET permit 20
-!
-router bgp 4259905000
-   router-id 10.0.0.4
-   neighbor 10.10.1.6 remote-as 4259840001
-   neighbor 10.10.1.8 remote-as 4259840002
-   neighbor 10.10.1.10 remote-as 4259840003
-   aggregate-address 8.0.0.0/8 summary-only
-   redistribute connected route-map INTERNET
-!
-end
+feature interface-vlan
+feature lacp
+
+ip route 0.0.0.0/0 10.11.1.254
+vlan 1,21
+vlan 21
+  name CLIENT-1
+
+vrf context management
+
+interface Vlan1
+
+interface Vlan21
+  no shutdown
+  ip address 10.11.1.102/24
+
+interface port-channel100
+  description To LEAFS
+  switchport mode trunk
+
+interface Ethernet1/1
+  switchport mode trunk
+  channel-group 100 mode active
+
+interface Ethernet1/2
+  switchport mode trunk
+  channel-group 100 mode active
+
+interface mgmt0
+  vrf member management
+icam monitor scale
+
+cli alias name wr copy run start
+line console
+line vty
+
 ```
+
+
 
 ***Проверка установки соседства BGP между spine и leaf коммутаторами:***
 
 ```
-leaf1#show ip bgp summary
-BGP summary information for VRF default
-Router identifier 10.8.0.2, local AS number 65001
-Neighbor Status Codes: m - Under maintenance
-  Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.8.0.0  4 65000          20618     20538    0    0 00:25:43 Estab   5      5
-  10.8.0.1  4 65000          20620     20669    0    0 00:25:43 Estab   5      5
-  10.10.1.1 4 65000          20370     20338    0    0 00:25:44 Estab   5      5
-  10.10.2.1 4 65000          20388     20351    0    0 00:25:44 Estab   5      5
+leaf1(config)# show ip bgp
+BGP routing table information for VRF default, address family IPv4 Unicast
+BGP table version is 30, Local Router ID is 10.0.0.2
+Status: s-suppressed, x-deleted, S-stale, d-dampened, h-history, *-valid, >-best
+Path type: i-internal, e-external, c-confed, l-local, a-aggregate, r-redist, I-i
+njected
+Origin codes: i - IGP, e - EGP, ? - incomplete, | - multipath, & - backup, 2 - b
+est2
 
-leaf2#show ip bgp summary
-BGP summary information for VRF default
-Router identifier 10.8.0.3, local AS number 65002
-Neighbor Status Codes: m - Under maintenance
-  Neighbor  V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc
-  10.8.0.0  4 65000          20631     20604    0    0 04:49:14 Estab   5      5
-  10.8.0.1  4 65000          20635     20672    0    0 04:49:14 Estab   5      5
-  10.10.1.3 4 65000          20419     20382    0    0 04:35:54 Estab   5      5
-  10.10.2.3 4 65000          20360     20392    0    0 04:35:54 Estab   5      5
+   Network            Next Hop            Metric     LocPrf     Weight Path
+*>i10.0.0.0/32        10.2.1.1                 0        100          0 ?
+*>r10.0.0.2/32        0.0.0.0                  0        100      32768 ?
+*>i10.0.0.3/32        10.2.1.1                 0        100          0 ?
+*>r10.1.0.2/32        0.0.0.0                  0        100      32768 ?
+*>i10.1.0.3/32        10.2.1.1                 0        100          0 ?
+*>r10.1.0.100/32      0.0.0.0                  0        100      32768 ?
+
+leaf1(config)# sh bgp l2vpn evpn
+BGP routing table information for VRF default, address family L2VPN EVPN
+BGP table version is 63, Local Router ID is 10.0.0.2
+Status: s-suppressed, x-deleted, S-stale, d-dampened, h-history, *-valid, >-best
+Path type: i-internal, e-external, c-confed, l-local, a-aggregate, r-redist, I-i
+njected
+Origin codes: i - IGP, e - EGP, ? - incomplete, | - multipath, & - backup, 2 - b
+est2
+
+   Network            Next Hop            Metric     LocPrf     Weight Path
+Route Distinguisher: 10.0.0.2:32788    (L2VNI 20001)
+*>l[2]:[0]:[0]:[48]:[5000.3100.1b08]:[0]:[0.0.0.0]/216
+                      10.1.0.100                        100      32768 i
+*>l[2]:[0]:[0]:[48]:[5000.3100.1b08]:[32]:[10.11.1.102]/272
+                      10.1.0.100                        100      32768 i
+*>l[3]:[0]:[32]:[10.1.0.100]/88
+                      10.1.0.100                        100      32768 i
+                      
+leaf2(config)# sh bgp l2vpn evpn
+BGP routing table information for VRF default, address family L2VPN EVPN
+BGP table version is 63, Local Router ID is 10.0.0.3
+Status: s-suppressed, x-deleted, S-stale, d-dampened, h-history, *-valid, >-best
+Path type: i-internal, e-external, c-confed, l-local, a-aggregate, r-redist, I-i
+njected
+Origin codes: i - IGP, e - EGP, ? - incomplete, | - multipath, & - backup, 2 - b
+est2
+
+   Network            Next Hop            Metric     LocPrf     Weight Path
+Route Distinguisher: 10.0.0.3:32788    (L2VNI 20001)
+*>l[2]:[0]:[0]:[48]:[5000.3100.1b08]:[0]:[0.0.0.0]/216
+                      10.1.0.100                        100      32768 i
+*>l[2]:[0]:[0]:[48]:[5000.3100.1b08]:[32]:[10.11.1.102]/272
+                      10.1.0.100                        100      32768 i
+*>l[3]:[0]:[32]:[10.1.0.100]/88
+                      10.1.0.100                        100      32768 i
+
+Route Distinguisher: 10.0.0.3:32789    (L2VNI 20002)
+*>l[2]:[0]:[0]:[48]:[0050.7966.6807]:[0]:[0.0.0.0]/216
+                      10.1.0.100                        100      32768 i
+*>l[2]:[0]:[0]:[48]:[0050.7966.6807]:[32]:[10.11.2.102]/272
+                      10.1.0.100                        100      32768 i
+*>l[3]:[0]:[32]:[10.1.0.100]/88
+                      10.1.0.100                        100      32768 i
+
+
+
 ```
 
-_***Проверка установки соседства BGP между borderleaf и FW1:***_
+_***Проверка VPC на leaf1 и leaf2:***_
 
 ```
-borderleaf#show ip bgp vrf all
-BGP routing table information for VRF default
-Router identifier 10.8.0.4, local AS number 65003
-Route status codes: s - suppressed contributor, * - valid, > - active, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup, L - labeled-unicast
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-RPKI Origin Validation codes: V - valid, I - invalid, U - unknown
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
+leaf1# sh vpc
+Legend:
+		(*) - local vPC is down, forwarding via vPC peer-link
 
-          Network                Next Hop              Metric  AIGP       LocPref Weight  Path
- * >      10.8.0.0/32            10.10.1.5             0       -          100     0       65000 i
- *        10.8.0.0/32            10.8.0.0              0       -          100     0       65000 i
- * >      10.8.0.1/32            10.10.2.5             0       -          100     0       65000 i
- *        10.8.0.1/32            10.8.0.1              0       -          100     0       65000 i
- * >Ec    10.8.0.2/32            10.10.1.5             0       -          100     0       65000 65001 i
- *  ec    10.8.0.2/32            10.10.2.5             0       -          100     0       65000 65001 i
- *  E     10.8.0.2/32            10.8.0.0              0       -          100     0       65000 65001 i
- *  e     10.8.0.2/32            10.8.0.1              0       -          100     0       65000 65001 i
- * >Ec    10.8.0.3/32            10.10.1.5             0       -          100     0       65000 65002 i
- *  ec    10.8.0.3/32            10.10.2.5             0       -          100     0       65000 65002 i
- *  E     10.8.0.3/32            10.8.0.0              0       -          100     0       65000 65002 i
- *  e     10.8.0.3/32            10.8.0.1              0       -          100     0       65000 65002 i
- * >      10.8.0.4/32            -                     -       -          -       0       i
- * >Ec    10.9.0.2/32            10.10.1.5             0       -          100     0       65000 65001 i
- *  ec    10.9.0.2/32            10.10.2.5             0       -          100     0       65000 65001 i
- *  E     10.9.0.2/32            10.8.0.0              0       -          100     0       65000 65001 i
- *  e     10.9.0.2/32            10.8.0.1              0       -          100     0       65000 65001 i
- * >Ec    10.9.0.3/32            10.10.1.5             0       -          100     0       65000 65002 i
- *  ec    10.9.0.3/32            10.10.2.5             0       -          100     0       65000 65002 i
- *  E     10.9.0.3/32            10.8.0.0              0       -          100     0       65000 65002 i
- *  e     10.9.0.3/32            10.8.0.1              0       -          100     0       65000 65002 i
- * >      10.9.0.4/32            -                     -       -          -       0       i
-BGP routing table information for VRF SERVICE
-Router identifier 10.11.1.254, local AS number 65003
-Route status codes: s - suppressed contributor, * - valid, > - active, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup, L - labeled-unicast
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-RPKI Origin Validation codes: V - valid, I - invalid, U - unknown
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
+vPC domain id                     : 10
+Peer status                       : peer adjacency formed ok
+vPC keep-alive status             : peer is alive
+Configuration consistency status  : success
+Per-vlan consistency status       : failed
+Type-2 consistency status         : success
+vPC role                          : primary
+Number of vPCs configured         : 1
+Peer Gateway                      : Enabled
+Dual-active excluded VLANs        : -
+Graceful Consistency Check        : Enabled
+Auto-recovery status              : Disabled
+Delay-restore status              : Timer is off.(timeout = 10s)
+Delay-restore SVI status          : Timer is off.(timeout = 10s)
+Operational Layer3 Peer-router    : Disabled
+Virtual-peerlink mode             : Disabled
 
-          Network                Next Hop              Metric  AIGP       LocPref Weight  Path
- * >      8.0.0.0/8              10.10.1.7             0       -          100     0       4259905000 i
- * >      10.10.1.6/31           -                     -       -          -       0       i
- * >      10.10.1.8/31           10.10.1.7             0       -          100     0       4259905000 4259840002 i
- * >      10.10.1.10/31          10.10.1.7             0       -          100     0       4259905000 4259840003 i
- * >      10.11.1.0/24           -                     -       -          -       0       i
- * >      10.11.2.0/24           10.10.1.7             0       -          100     0       4259905000 4259840002 i
- * >      10.11.3.0/24           10.10.1.7             0       -          100     0       4259905000 4259840003 i
- * >      10.11.4.0/24           10.10.1.7             0       -          100     0       4259905000 4259840003 i
-BGP routing table information for VRF SERVICE_1
-Router identifier 10.11.2.254, local AS number 65003
-Route status codes: s - suppressed contributor, * - valid, > - active, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup, L - labeled-unicast
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-RPKI Origin Validation codes: V - valid, I - invalid, U - unknown
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
+vPC Peer-link status
+---------------------------------------------------------------------
+id    Port   Status Active vlans
+--    ----   ------ -------------------------------------------------
+1     Po200  up     1,21,999
 
-          Network                Next Hop              Metric  AIGP       LocPref Weight  Path
- * >      8.0.0.0/8              10.10.1.9             0       -          100     0       4259905000 i
- * >      10.10.1.6/31           10.10.1.9             0       -          100     0       4259905000 4259840001 i
- * >      10.10.1.8/31           -                     -       -          -       0       i
- * >      10.10.1.10/31          10.10.1.9             0       -          100     0       4259905000 4259840003 i
- * >      10.11.1.0/24           10.10.1.9             0       -          100     0       4259905000 4259840001 i
- * >      10.11.2.0/24           -                     -       -          -       0       i
- * >      10.11.3.0/24           10.10.1.9             0       -          100     0       4259905000 4259840003 i
- * >      10.11.4.0/24           10.10.1.9             0       -          100     0       4259905000 4259840003 i
-BGP routing table information for VRF SERVICE_2
-Router identifier 10.11.3.254, local AS number 65003
-Route status codes: s - suppressed contributor, * - valid, > - active, E - ECMP head, e - ECMP
-                    S - Stale, c - Contributing to ECMP, b - backup, L - labeled-unicast
-                    % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-RPKI Origin Validation codes: V - valid, I - invalid, U - unknown
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
 
-          Network                Next Hop              Metric  AIGP       LocPref Weight  Path
- * >      8.0.0.0/8              10.10.1.11            0       -          100     0       4259905000 i
- * >      10.10.1.6/31           10.10.1.11            0       -          100     0       4259905000 4259840001 i
- * >      10.10.1.8/31           10.10.1.11            0       -          100     0       4259905000 4259840002 i
- * >      10.10.1.10/31          -                     -       -          -       0       i
- * >      10.11.1.0/24           10.10.1.11            0       -          100     0       4259905000 4259840001 i
- * >      10.11.2.0/24           10.10.1.11            0       -          100     0       4259905000 4259840002 i
- * >      10.11.3.0/24           -                     -       -          -       0       i
- * >      10.11.4.0/24           -                     -       -          -       0       i
- 
- 
+vPC status
+----------------------------------------------------------------------------
+Id    Port          Status Consistency Reason                Active vlans
+--    ------------  ------ ----------- ------                ---------------
+100   Po100         up     success     success               1,21,999
+
+leaf2(config)# sh vpc
+Legend:
+                (*) - local vPC is down, forwarding via vPC peer-link
+
+vPC domain id                     : 10
+Peer status                       : peer adjacency formed ok
+vPC keep-alive status             : peer is alive
+Configuration consistency status  : success
+Per-vlan consistency status       : failed
+Type-2 consistency status         : success
+vPC role                          : secondary
+Number of vPCs configured         : 1
+Peer Gateway                      : Enabled
+Dual-active excluded VLANs        : -
+Graceful Consistency Check        : Enabled
+Auto-recovery status              : Disabled
+Delay-restore status              : Timer is off.(timeout = 10s)
+Delay-restore SVI status          : Timer is off.(timeout = 10s)
+Operational Layer3 Peer-router    : Disabled
+Virtual-peerlink mode             : Disabled
+
+vPC Peer-link status
+---------------------------------------------------------------------
+id    Port   Status Active vlans
+--    ----   ------ -------------------------------------------------
+1     Po200  up     1,21,999
+
+
+vPC status
+----------------------------------------------------------------------------
+Id    Port          Status Consistency Reason                Active vlans
+--    ------------  ------ ----------- ------                ---------------
+100   Po100         up     success     success               1,21,999
 ```
 
 
 
-***Проверка маршрутов со стороный FW1 на borderleaf (видим суммированый маршрут 8.0.0.0/8 в vrf SERVICE, для остальных vrf аналогично)***
+***Проверка клиентских подключений между CE и клиентов за leaf2 в другом vni (20002)***
 
 ```
-borderleaf#show ip route vrf SERVICE 8.8.8.8
+VPC7> show ip
 
-VRF: SERVICE
-Codes: C - connected, S - static, K - kernel,
-       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
-       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
-       N2 - OSPF NSSA external type2, B - Other BGP Routes,
-       B I - iBGP, B E - eBGP, R - RIP, I L1 - IS-IS level 1,
-       I L2 - IS-IS level 2, O3 - OSPFv3, A B - BGP Aggregate,
-       A O - OSPF Summary, NG - Nexthop Group Static Route,
-       V - VXLAN Control Service, M - Martian,
-       DH - DHCP client installed default route,
-       DP - Dynamic Policy Route, L - VRF Leaked,
-       G  - gRIBI, RC - Route Cache Route
+NAME        : VPC7[1]
+IP/MASK     : 10.11.2.102/24
+GATEWAY     : 10.11.2.254
+DNS         :
+MAC         : 00:50:79:66:68:07
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
 
- B E      8.0.0.0/8 [200/0] via 10.10.1.7, Ethernet3.1
+VPC7> ping 10.11.1.102 -c 1000
+
+84 bytes from 10.11.1.102 icmp_seq=1 ttl=254 time=5.262 ms
+84 bytes from 10.11.1.102 icmp_seq=2 ttl=254 time=4.193 ms
+84 bytes from 10.11.1.102 icmp_seq=3 ttl=254 time=4.324 ms
+
+CE(config)# show ip int br
+
+IP Interface Status for VRF "default"(1)
+Interface            IP Address      Interface Status
+Vlan21               10.11.1.102     protocol-up/link-up/admin-up
+
+CE(config)# sh port-channel s
+scale-fanout   summary
+CE(config)# sh port-channel summary
+Flags:  D - Down        P - Up in port-channel (members)
+        I - Individual  H - Hot-standby (LACP only)
+        s - Suspended   r - Module-removed
+        b - BFD Session Wait
+        S - Switched    R - Routed
+        U - Up (port-channel)
+        p - Up in delay-lacp mode (member)
+        M - Not in use. Min-links not met
+--------------------------------------------------------------------------------
+Group Port-       Type     Protocol  Member Ports
+      Channel
+--------------------------------------------------------------------------------
+100   Po100(SU)   Eth      LACP      Eth1/1(P)    Eth1/2(P)
+
+CE(config)# ping 10.11.2.102 source-interface vlan 21
+PING 10.11.2.102 (10.11.2.102): 56 data bytes
+64 bytes from 10.11.2.102: icmp_seq=0 ttl=62 time=9.864 ms
+64 bytes from 10.11.2.102: icmp_seq=1 ttl=62 time=3.415 ms
+64 bytes from 10.11.2.102: icmp_seq=2 ttl=62 time=4.645 ms
+64 bytes from 10.11.2.102: icmp_seq=3 ttl=62 time=3.298 ms
+64 bytes from 10.11.2.102: icmp_seq=4 ttl=62 time=3.344 ms
 ```
 
-***Проверям все маршруты на leaf1 и leaf2. Видим, что маршруты  из других vrf приходят от borderleaf, также видим сеть 8.0.0.0/8 анонсируюмую с fw1. Доступно от хостов есть***
 
-```
-leaf1#show bgp evpn route-type ip-prefix ipv4
-BGP routing table information for VRF default
-Router identifier 10.8.0.2, local AS number 65001
-Route status codes: * - valid, > - active, S - Stale, E - ECMP head, e - ECMP
-                    c - Contributing to ECMP, % - Pending BGP convergence
-Origin codes: i - IGP, e - EGP, ? - incomplete
-AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Link Local Nexthop
 
-          Network                Next Hop              Metric  LocPref Weight  Path
- * >Ec    RD: 10.8.0.4:1 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 8.0.0.0/8
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.6/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.8/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.10.1.10/31
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.11.1.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840001 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.11.2.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840002 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.11.3.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- * >Ec    RD: 10.8.0.4:1 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:1 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:2 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- *  ec    RD: 10.8.0.4:2 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 4259905000 4259840003 i
- * >Ec    RD: 10.8.0.4:3 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
- *  ec    RD: 10.8.0.4:3 ip-prefix 10.11.4.0/24
-                                 10.9.0.4              -       100     0       65000 65003 i
-```
 
-```
-VPC> show
-
-NAME   IP/MASK              GATEWAY                             GATEWAY
-VPC    10.11.4.102/24       10.11.4.254
-       fe80::250:79ff:fe66:6830/64
-
-VPC> ping 10.11.1.101
-
-84 bytes from 10.11.1.101 icmp_seq=1 ttl=60 time=53.907 ms
-84 bytes from 10.11.1.101 icmp_seq=2 ttl=60 time=42.174 ms
-^C
-VPC> trace 10.11.1.101
-trace to 10.11.1.101, 8 hops max, press Ctrl+C to stop
- 1   10.11.4.254   4.268 ms  3.720 ms  3.602 ms
- 2   10.11.3.254   14.952 ms  14.813 ms  14.049 ms
- 3   10.10.1.11   18.495 ms  21.575 ms  21.672 ms
- 4   10.10.1.6   25.634 ms  24.733 ms  27.430 ms
- 5   10.11.1.254   33.982 ms  35.746 ms  36.676 ms
- 6   *10.11.1.101   47.973 ms (ICMP type:3, code:3, Destination port unreachable)
-
-VPC> ping 8.8.8.8
-
-84 bytes from 8.8.8.8 icmp_seq=1 ttl=62 time=25.988 ms
-^C
-VPC> trace 8.8.8.8
-trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
- 1   10.11.4.254   4.017 ms  3.873 ms  3.605 ms
- 2   10.11.3.254   14.383 ms  13.411 ms  13.283 ms
- 3     *  *  *
- 4     *  *  *
-```
 

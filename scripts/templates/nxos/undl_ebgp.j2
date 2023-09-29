@@ -3,10 +3,11 @@ no router isis UNDERLAY
 no router bgp {{ device_params.ASN_ibgp }}
 no router bgp {{ device_params.ASN_ebgp }}
 
-
 {% if 'spine' in device_params.hostname %}
-route-map REDISTRIBUTE_CONNECTED permit 10
-  match interface loopback0
+  ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.0.0.0/24 le 32
+
+  route-map REDISTRIBUTE_CONNECTED permit 10
+   match ip address prefix-list REDISTRIBUTE_CONNECTED
 
 route-map R_AS permit 10
   match as-number 65001-65003
@@ -23,21 +24,24 @@ router bgp {{ device_params.ASN_ibgp }}
     address-family ipv4 unicast
 
 {% elif 'leaf' in device_params.hostname %}
-route-map REDISTRIBUTE_CONNECTED permit 10
-  match interface loopback0
+ip prefix-list REDISTRIBUTE_CONNECTED seq 10 permit 10.0.0.0/24 le 32
 
-router bgp {{ device_params.ASN_ebgp }}
-  router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
-  reconnect-interval 12
-  address-family ipv4 unicast
-    redistribute direct route-map REDISTRIBUTE_CONNECTED
-    maximum-paths 64
-  template peer SPINE
-    remote-as {{ device_params.ASN_ibgp }}
-    password 0 cisco
-    timers {{ device_params.timers }}
+route-map REDISTRIBUTE_CONNECTED permit 10
+ match ip address prefix-list REDISTRIBUTE_CONNECTED
+
+  router bgp {{ device_params.ASN_ebgp }}
+    router-id {{ device_params.int_num['Lo0'].split('/')[0] }}
+    reconnect-interval 12
     address-family ipv4 unicast
-  {% for neib in device_params.bgp_neighbor %}
+      redistribute direct route-map REDISTRIBUTE_CONNECTED
+      maximum-paths 64
+    template peer SPINE
+      remote-as {{ device_params.ASN_ibgp }}
+      password 0 cisco
+      timers {{ device_params.timers }}
+      address-family ipv4 unicast
+
+{% for neib in device_params.bgp_neighbor %}
   neighbor {{ neib }}
     inherit peer SPINE
     {% endfor %}

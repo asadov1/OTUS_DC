@@ -1,4 +1,3 @@
----
 - device_type: arista_eos
   host: 192.168.254.55
   username: cisco_automate
@@ -24,3 +23,8 @@
   username: cisco_automate
   password: Cisco_automate#1
   timeout: 50
+#- device_type: arista_eos
+#  host: 192.168.254.60
+#  username: cisco_automate
+#  password: Cisco_automate#1
+#  timeout: 65

@@ -19,8 +19,8 @@
   username: cisco_automate
   password: Cisco_automate#1
   timeout: 50
-- device_type: cisco_nxos
-  host: 192.168.254.54
-  username: cisco_automate
-  password: Cisco_automate#1
-  timeout: 50
+#- device_type: cisco_nxos
+#  host: 192.168.254.54
+#  username: cisco_automate
+#  password: Cisco_automate#1
+#  timeout: 50

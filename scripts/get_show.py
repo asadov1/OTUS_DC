@@ -22,6 +22,6 @@ def send_show_command(device, commands):
 
 if __name__ == "__main__":
     commands = ["sh run"]
-    conn_params = yaml_load("data_files/devices_nxos.yml")
+    conn_params = yaml_load("data_files/devices_eos.yml")
     for dev in conn_params:
         print(send_show_command(dev, commands))
